@@ -10,7 +10,7 @@ interface FormData {
   zipcode: string;
 }
 
-const ProfileForm: React.FC = () => {
+const ProfileForm= () => {
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     address1: '',
@@ -86,7 +86,7 @@ const ProfileForm: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="state">State (required)</label>
+          <label htmlFor="state">State (required)</label> 
           <select
             id="state"
             name="state"
@@ -145,7 +145,7 @@ const ProfileForm: React.FC = () => {
             <option value="WV">West Virginia</option>
             <option value="WI">Wisconsin</option>
             <option value="WY">Wyoming</option>
-          </select>
+          </select>  
         </div>
         <div>
           <label htmlFor="zipcode">Zipcode (required, at least 5 characters)</label>
