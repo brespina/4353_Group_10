@@ -14,6 +14,8 @@ function Navbar() {
       <ul>
         <CustomLink to="/login">Login</CustomLink>
         <CustomLink to="/register">Register</CustomLink>
+        <CustomLink to="/profile">Profile(replace once auth is created)</CustomLink>
+        <CustomLink to="/fuelquote">FuelQuote(replace once auth is created)</CustomLink>
       </ul>
     </nav>
   );
