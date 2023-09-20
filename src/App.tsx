@@ -7,8 +7,9 @@ import Profile from "./pages/Profile";
 import FuelQuotePage from "./pages/FuelQuotePage";
 //import FuelQuoteForm from "./components/FuelQuoteForm";
 
-
 import { Route, Routes } from "react-router-dom";
+
+
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         </Routes>
       </div>
     </div>
+
   );
 }
 
