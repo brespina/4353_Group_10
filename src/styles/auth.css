@@ -112,4 +112,11 @@ a:hover {
   transform: translateY(-50%);
   cursor: pointer;
 }
+input:invalid
+{
+  border: 1px solid #FF305D;    
+}
+
+
+
 
