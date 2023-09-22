@@ -1,5 +1,6 @@
 // src/components/ProfileForm.tsx
 import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface FormData {
   fullName: string;
@@ -19,6 +20,8 @@ const ProfileForm= () => {
     state: '',
     zipcode: '',
   });
+  
+  const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -30,13 +33,13 @@ const ProfileForm= () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // You can send the form data to your backend or perform validation here
+    navigate('/home');
     console.log(formData);
   };
 
   return (
     <div>
-      <h2>Profile Information</h2>
+      <h3>Complete your profile</h3>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="fullName">Full Name (required)</label>
@@ -161,6 +164,7 @@ const ProfileForm= () => {
           />
         </div>
         <button type="submit">Save</button>
+        
       </form>
     </div>
   );

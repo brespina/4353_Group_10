@@ -11,22 +11,27 @@ import { Route, Routes } from "react-router-dom";
 
 
 
+import { useLocation } from "react-router-dom";
+
+
 function App() {
+  const location = useLocation();
+
   return (
     <div>
-      <Navbar />
+      {location.pathname !== "/" && location.pathname !== "/register" ? <Navbar /> : null}
       <div className="container">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/fuelquote" element={<FuelQuotePage />} />
+          <Route path="/home" element={<Home />} />
         </Routes>
       </div>
     </div>
-
   );
 }
 
 export default App;
+
