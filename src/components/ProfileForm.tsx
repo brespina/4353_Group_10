@@ -1,5 +1,5 @@
 // src/components/ProfileForm.tsx
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface FormData {

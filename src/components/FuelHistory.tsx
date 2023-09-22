@@ -12,7 +12,7 @@ interface History {
 const FuelHistory = () => {
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
 
-    // Fetch these info from DB
+    // we'll fetch these info from DB later
     const fuelHistoryData: History[] = [
         {
             id: 1,
@@ -39,7 +39,6 @@ const FuelHistory = () => {
             suggested_price: "3.14",
         },
     ];
-
     const toggleExpand = (id: number) => {
         if (expandedIds.includes(id)) {
             setExpandedIds(expandedIds.filter((expandedId) => expandedId !== id));
@@ -48,22 +47,63 @@ const FuelHistory = () => {
         }
     };
 
+
+    const greyedOutStyle: React.CSSProperties = {
+        backgroundColor: "#f2f2f2", // Grey background color
+        color: "#000", // Grey text color
+        cursor: "not-allowed", // Change cursor to "not-allowed"
+    };
+
     return (
         <>
             {fuelHistoryData.map((history) => (
-                <div
-                    key={history.id}
-                    className="client-history-item"
-                    onClick={() => toggleExpand(history.id)}
-                >
-                    <div className="date">{history.date_requested}</div>
-
+                <div key={history.id} className="client-history-item">
+                    <button
+                        className="date"
+                        onClick={() => toggleExpand(history.id)}
+                        aria-expanded={expandedIds.includes(history.id)}
+                        aria-controls={`details-${history.id}`}
+                    >
+                        {history.date_requested}
+                    </button>
                     {expandedIds.includes(history.id) && (
                         <div className="details">
-                            <div>Gallons Requested: {history.gallons}</div>
-                            <div>Delivery Address: {history.delivery_address}</div>
-                            <div>Delivery Date: {history.delivery_date}</div>
-                            <div>Suggested Price/Gallon: ${history.suggested_price}</div>
+                            <div>
+                                <label htmlFor="gallons">Gallons requested:</label>
+                                <input
+                                    style={greyedOutStyle}
+                                    type="text"
+                                    value={history.gallons}
+                                    readOnly
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="delivery_date">Delivery Date:</label>
+                                <input
+                                    style={greyedOutStyle}
+                                    type="text"
+                                    value={history.delivery_date}
+                                    readOnly
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="delivery_address">Delivery Address</label>
+                                <input
+                                    style={greyedOutStyle}
+                                    type="text"
+                                    value={history.delivery_address}
+                                    readOnly
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="suggested_price">Suggested Price</label>
+                                <input
+                                    style={greyedOutStyle}
+                                    type="text"
+                                    value={history.suggested_price}
+                                    readOnly
+                                />
+                            </div>
                         </div>
                     )}
                 </div>

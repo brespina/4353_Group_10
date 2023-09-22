@@ -2,6 +2,7 @@ import React, { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Company from "../components/Company";
 
 interface RegisterProps {
   addUser: (username: string, password: string) => void;
@@ -21,7 +22,7 @@ const Register: React.FC<RegisterProps> = ({ addUser }) => {
 
   return (
     <div className="auth-page">
-      <h1 className="company-name">Singh City Fuel</h1>
+      <Company />
       <div className="form">
         <h2>Register</h2>
         <p>Create a new Singh City Fuel account</p>

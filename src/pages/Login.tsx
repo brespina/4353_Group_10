@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import "../styles/auth.css";
 import ProfileForm from "../components/ProfileForm";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Company from "../components/Company";
+
 
 interface LoginProps {
   loginHandler: (username: string, password: string) => Promise<boolean>;
@@ -28,7 +30,7 @@ const Login: React.FC<LoginProps> = ({ loginHandler }) => {
 
   return (
     <div className="auth-page">
-      <h1 className="company-name">Singh City Fuel</h1>
+      <Company />
       <div className="form">
         {shouldShowProfileForm ? (
           <ProfileForm />
