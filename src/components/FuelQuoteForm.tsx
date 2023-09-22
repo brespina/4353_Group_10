@@ -25,6 +25,7 @@ const FuelQuoteForm: React.FC<FuelQuoteFormProps> = ({ deliveryAddr }) => {
     console.log(formData);
   };
 
+  // handle price
   const handleCalculatePrice = () => {
     const pricePerGallon = formData.ppg;
     const numGallons = formData.gallons;
@@ -38,7 +39,7 @@ const FuelQuoteForm: React.FC<FuelQuoteFormProps> = ({ deliveryAddr }) => {
 
     // Define CSS styles for greyed out input fields
     const greyedOutStyle: React.CSSProperties = {
-        backgroundColor: '#f2f2f2', // Grey background color
+        backgroundColor: '#E0E0E0', // Grey background color
         color: '#000', // Grey text color
         cursor: 'not-allowed', // Change cursor to "not-allowed"
       };
@@ -70,6 +71,7 @@ const FuelQuoteForm: React.FC<FuelQuoteFormProps> = ({ deliveryAddr }) => {
           onChange={handleChange}
           readOnly
           maxLength={100}
+          style={greyedOutStyle}
         />
       </div>
       <div>
