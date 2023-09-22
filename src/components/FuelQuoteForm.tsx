@@ -75,7 +75,7 @@ const FuelQuoteForm: React.FC<FuelQuoteFormProps> = ({ deliveryAddr }) => {
       <div>
         <label htmlFor="deliveryDate">Delivery Date (required)</label>
         <input
-          type="text"  // want to change to date type
+          type="date"
           id="deliveryDate"
           name="deliveryDate"
           value={formData.deliveryDate}
