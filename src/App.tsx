@@ -10,15 +10,14 @@ import FuelHistory from "./components/FuelHistory";
 import { Route, Routes } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
-  
-
-
 function App() {
   const location = useLocation();
 
   return (
     <div>
-      {location.pathname !== "/" && location.pathname !== "/register" ? <Navbar /> : null}
+      {location.pathname !== "/" && location.pathname !== "/register" && (
+        <Navbar />
+      )}
       <div className="container">
         <Routes>
           <Route path="/" element={<Login />} />
@@ -26,7 +25,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/fuelquote" element={<FuelQuotePage />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/history" element = {<FuelHistory />} />
+          <Route path="/history" element={<FuelHistory />} />
         </Routes>
       </div>
     </div>
@@ -34,4 +33,3 @@ function App() {
 }
 
 export default App;
-
