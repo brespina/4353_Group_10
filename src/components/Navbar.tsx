@@ -20,6 +20,7 @@ function Navbar() {
         <CustomLink to="/fuelquote">
           FuelQuote(replace once auth is created)
         </CustomLink>
+        <CustomLink to= "/history">Fuel History</CustomLink>
       </ul>
     </nav>
   );

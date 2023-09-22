@@ -6,12 +6,11 @@ import Profile from "./pages/Profile";
 //import ProfileForm from "./components/ProfileForm";
 import FuelQuotePage from "./pages/FuelQuotePage";
 //import FuelQuoteForm from "./components/FuelQuoteForm";
-
+import FuelHistory from "./components/FuelHistory";
 import { Route, Routes } from "react-router-dom";
-
-
-
 import { useLocation } from "react-router-dom";
+
+  
 
 
 function App() {
@@ -27,6 +26,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/fuelquote" element={<FuelQuotePage />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/history" element = {<FuelHistory />} />
         </Routes>
       </div>
     </div>
