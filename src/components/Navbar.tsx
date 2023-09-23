@@ -14,13 +14,9 @@ function Navbar() {
       <ul>
         <CustomLink to="/">Login</CustomLink>
         <CustomLink to="/register">Register</CustomLink>
-        <CustomLink to="/profile">
-          Profile
-        </CustomLink>
-        <CustomLink to="/fuelquote">
-          FuelQuote
-        </CustomLink>
-        <CustomLink to= "/history">Fuel History</CustomLink>
+        <CustomLink to="/profile">Profile</CustomLink>
+        <CustomLink to="/fuelquote">Fuel Quote</CustomLink>
+        <CustomLink to="/history">Fuel History</CustomLink>
       </ul>
     </nav>
   );
