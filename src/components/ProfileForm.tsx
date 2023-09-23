@@ -39,7 +39,7 @@ const ProfileForm= () => {
 
   return (
     <div>
-      <h3>Complete your profile</h3>
+      <h2>Complete your profile</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="fullName">Full Name (required)</label>

@@ -8,17 +8,17 @@ interface Props {
 function Navbar() {
   return (
     <nav className="nav">
-      <Link to="/" className="siteTitle">
+      <Link to="Home" className="siteTitle">
         Singh City Fuel
       </Link>
       <ul>
-        <CustomLink to="/login">Login</CustomLink>
+        <CustomLink to="/">Login</CustomLink>
         <CustomLink to="/register">Register</CustomLink>
         <CustomLink to="/profile">
-          Profile(replace once auth is created)
+          Profile
         </CustomLink>
         <CustomLink to="/fuelquote">
-          FuelQuote(replace once auth is created)
+          FuelQuote
         </CustomLink>
         <CustomLink to= "/history">Fuel History</CustomLink>
       </ul>
