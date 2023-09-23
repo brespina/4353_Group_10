@@ -11,7 +11,7 @@ const FuelQuotePage= () => {
 
         return (
             <div>
-              <h1>Fuel Quote</h1>
+              <h2>Fuel Quote</h2>
               <FuelQuoteForm deliveryAddr={"111 main st"} />
             </div>
           );
