@@ -1,6 +1,7 @@
 import React, { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
+import "../styles/fancydiv.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Company from "../components/Company";
 
@@ -21,7 +22,7 @@ const Register: React.FC<RegisterProps> = ({ addUser }) => {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page fancy-div">
       <Company />
       <div className="form">
         <h2>Register</h2>

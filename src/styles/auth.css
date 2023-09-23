@@ -1,7 +1,4 @@
 body {
-  background-image: url("images/background.jpg");
-  background-size: 1600px 1069px;
-  background-repeat:no-repeat;
   margin: 0;
 }
 
@@ -137,7 +134,7 @@ a:hover {
 
 input:invalid
 {
-  border: 1px solid #FF305D;    
+  border: 1px solid #FF305D;
 }
 
 
