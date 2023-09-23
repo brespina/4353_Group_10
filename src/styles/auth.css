@@ -1,5 +1,7 @@
 body {
-  background: none;
+  background-image: url("images/background.jpg");
+  background-size: cover;
+  background-attachment: initial;
   margin: 0;
 }
 
@@ -35,10 +37,33 @@ body {
   position: relative;
 }
 
+h1 {
+  font-size: 3.5rem;
+  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  margin-bottom: .5rem;
+  margin-top: .5rem;
+  color: #333;
+}
+
 h2 {
   font-size: 2rem;
-  margin-bottom: 1rem;
+  margin-top: 1rem;
   color: #333;
+}
+
+h3 {
+  font-size: 5rem;
+  font-family:Georgia, 'Times New Roman', Times, serif;
+  margin-top: 15rem;
+  color: whitesmoke;
+}
+
+h4 {
+  font-size: 1.5rem;
+  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-weight: 400;
+  margin-top: 1rem;
+  color: whitesmoke;
 }
 
 .auth-form {
@@ -55,7 +80,6 @@ label {
   cursor: pointer;
 }
 
-
 input {
   font-size: 1.2rem;
   width: 100%;
@@ -66,7 +90,6 @@ input {
   box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
   flex: 1;
 }
-
 
 button {
   font-size: 1.2rem;
@@ -100,7 +123,6 @@ a:hover {
   color: #555;
 }
 
-
 .password-input {
   position: relative;
 }
@@ -112,6 +134,7 @@ a:hover {
   transform: translateY(-50%);
   cursor: pointer;
 }
+
 input:invalid
 {
   border: 1px solid #FF305D;    
