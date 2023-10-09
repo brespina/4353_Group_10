@@ -3,10 +3,8 @@
 
 name: FastAPI
 
-on:
-  push:
-    branches: [main, workflows-experiment]
-
+on: [push, pull_request]
+  
 permissions:
   contents: read
 
