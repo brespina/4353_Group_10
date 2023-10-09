@@ -1,9 +1,8 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Query, Path
+from fastapi import FastAPI, Path, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
 
 fake_users_db = {
     "superlongusername": {
