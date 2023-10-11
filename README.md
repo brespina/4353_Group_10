@@ -4,13 +4,13 @@ This repository is for group 10 in COSC 4353 Fall 2023 Semester at the Universit
 
 ## Usage
 
-For the **frontend**, run in the terminal:
+For the **frontend**, install Node.js and run in the terminal:
 
 1. `cd 4353_Group_10`
 2. `npm i`
 3. `npm run dev`
 
-For the **backend**, run in the terminal:
+For the **backend**, install Python 3.11 and run in the terminal:
 
 1. `cd 4353_Group_10/backend`
 2. `pip install -r requirements.txt`
