@@ -1,33 +1,48 @@
 import React, { FormEvent, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 import "../styles/fancydiv.css";
 import ProfileForm from "../components/ProfileForm";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Company from "../components/Company";
+import api from "../components/api";
 
-interface LoginProps {
-  loginHandler: (username: string, password: string) => Promise<boolean>;
-}
-
-const Login: React.FC<LoginProps> = ({ loginHandler }) => {
+const Login: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [shouldShowProfileForm, setShouldShowProfileForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    var formdata = new FormData();
+    formdata.append('username', username);
+    formdata.append('password', password);
 
-    const isLoginSuccessful = true;
+    try {
+      const response = await api.post('/api/token', formdata, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+      });      
+      const { access_token, require_details } = response.data;
 
-    if (isLoginSuccessful) {
-      const isProfileComplete = false;
-      if (!isProfileComplete) {
+      localStorage.setItem('token', access_token);
+
+      if (require_details) {
         setShouldShowProfileForm(true);
+      } else {
+        navigate('/home');
       }
+      return true; // Login successful
+
+    } catch (error) {
+      return false; // Login failed
     }
   };
 
+ 
   return (
     <div className="auth-page fancy-div">
       <Company />

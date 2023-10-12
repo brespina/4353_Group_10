@@ -25,3 +25,4 @@ typing_extensions==4.8.0
 uvicorn==0.23.2
 watchfiles==0.20.0
 websockets==11.0.3
+axios == 1.5.1

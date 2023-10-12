@@ -4,21 +4,34 @@ import "../styles/auth.css";
 import "../styles/fancydiv.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Company from "../components/Company";
+import api from "../components/api";
 
-interface RegisterProps {
-  addUser: (username: string, password: string) => void;
-}
 
-const Register: React.FC<RegisterProps> = ({ addUser }) => {
+const Register: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (s: FormEvent) => {
+  const handleSubmit = async (s: FormEvent) => {
     s.preventDefault();
-    navigate("/");
-    addUser(username, password);
+    try {
+      const response = await api.post("/api/register", {
+        username,
+        password
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      if (response.status === 200) {
+        navigate("/");
+      } else {
+        console.log("Registration failed");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

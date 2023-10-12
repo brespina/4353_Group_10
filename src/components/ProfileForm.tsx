@@ -1,9 +1,10 @@
 // src/components/ProfileForm.tsx
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from "../components/api";
 
 interface FormData {
-  fullName: string;
+  full_name: string;
   address1: string;
   address2: string;
   city: string;
@@ -13,7 +14,7 @@ interface FormData {
 
 const ProfileForm= () => {
   const [formData, setFormData] = useState<FormData>({
-    fullName: '',
+    full_name: '',
     address1: '',
     address2: '',
     city: '',
@@ -30,9 +31,25 @@ const ProfileForm= () => {
       [name]: value,
     });
   };
-
-  const handleSubmit = (e: FormEvent) => {
+  
+  const token = localStorage.getItem('token');
+  
+  const handleSubmit = async (e: FormEvent) => {
+    console.log(JSON.stringify(formData));
     e.preventDefault();
+    try {
+      const response = await api.post('/api/user/', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.status === 200) {
+        navigate('/home');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
     navigate('/home');
     console.log(formData);
   };
@@ -42,12 +59,12 @@ const ProfileForm= () => {
       <h2>Complete your profile</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="fullName">Full Name (required)</label>
+          <label htmlFor="full_name">Full Name (required)</label>
           <input
             type="text"
-            id="fullName"
-            name="fullName"
-            value={formData.fullName}
+            id="full_name"
+            name="full_name"
+            value={formData.full_name}
             onChange={handleChange}
             required
             maxLength={50}
