@@ -23,14 +23,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SECRET_KEY = "RUHqtDiJSJVAoyVtrSH9bbk1pQqEME7gUiYfLjveXGVlObYhYeqKJB07jvf38nC" # Ideally we want in a .env file but its ok :)
-ALGORITHM = "HS256"
+# Ideally we want in a .env file but its ok :)
+SECRET_KEY = "RUHqtDiJSJVAoyVtrSH9bbk1pQqEME7gUiYfLjveXGVlObYhYeqKJB07jvf38nC"
+ALGORITHM = ["HS256"]
 EXPIRATION = 24
 
 
 class User(BaseModel):
     username: str
     password: str  # probably need to hash this or something
+
 
 class UserDetails(BaseModel):
     full_name: str
@@ -40,14 +42,17 @@ class UserDetails(BaseModel):
     state: str
     zipcode: int
 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
+
 
 def create_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(hours=EXPIRATION)
     to_encode.update({"exp": expire})
-    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM[0])
     return token
+
 
 def decode_token(token: str):
     try:
@@ -56,6 +61,7 @@ def decode_token(token: str):
         return username
     except jwt.PyJWTError as p:
         raise HTTPException(status_code=401, detail="Invalid token")
+
 
 @app.post("/api/register")
 async def register(user: User):
@@ -67,6 +73,7 @@ async def register(user: User):
     users[user.username] = user.password
     return {"message": "User registered successfully!"}
 
+
 @app.post("/api/token")
 async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     if data.username in users and users[data.username] == data.password:
@@ -74,19 +81,24 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         require_details = 0
         if data.username not in user_details:
             require_details = 1
-        return {"access_token": token, "token_type": "bearer", "require_details": require_details}
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "require_details": require_details,
+        }
     else:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    
+
 
 @app.post("/api/user/")
 async def add_user_details(details: UserDetails, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
     if user in user_details:
         raise HTTPException(status_code=400, detail="User details already registered")
-    
+
     user_details[user] = details
     return {"message": "User details registered successfully!"}
+
 
 @app.get("/api/user/")
 async def get_user_details(token: str = Depends(oauth2_scheme)):
