@@ -41,7 +41,7 @@ def test_add_user_details():
         "address1": "123 Main St",
         "city": "Los Angeles",
         "state": "CA",
-        "zipcode": 12345
+        "zipcode": "12345"
     }, headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     assert response.json() == {"message": "User details registered successfully!"}
@@ -53,7 +53,7 @@ def test_add_user_details_existing_user():
         "address1": "123 NY St",
         "city": "NYC",
         "state": "NY",
-        "zipcode": 10001
+        "zipcode": "10001"
     }, headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 400
     assert response.json() == {"detail": "User details already registered"}
@@ -136,7 +136,7 @@ def test_get_quote_wo_fuel_history():
         "address1": "123 Main St",
         "city": "Los Angeles",
         "state": "CA",
-        "zipcode": 12345
+        "zipcode": "12345"
     }, headers={"Authorization": f"Bearer {token}"})
 
     response = client.get("/api/fuel_quote/", headers={"Authorization": f"Bearer {token}"})
@@ -151,7 +151,7 @@ def test_change_profile():
         "address1": "123 Main St",
         "city": "Los Angeles",
         "state": "CA",
-        "zipcode": 12345
+        "zipcode": "12345"
     }, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json() == {"message": "User details updated successfully!"}
@@ -163,7 +163,32 @@ def test_change_profile_wo_user_details():
         "address1": "123 Main St",
         "city": "Los Angeles",
         "state": "CA",
-        "zipcode": 12345
+        "zipcode": "12345"
     }, headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 400
     assert response.json() == {"detail": "User details not registered"}
+
+
+def test_add_user_details_invalid_full_name_and_state():
+    access_token = get_access_token()
+    response = client.put("/api/user/", json={
+        "full_name": "JohnDoe",
+        "address1": "123 Main St",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipcode": "12345"
+    }, headers={"Authorization": f"Bearer {access_token}"})
+    
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "Value error, Full name must contain space"
+
+    response = client.put("/api/user/", json={
+        "full_name": "John Doe",
+        "address1": "123 Main St",
+        "city": "Los Angeles",
+        "state": "NA",
+        "zipcode": "12345"
+    }, headers={"Authorization": f"Bearer {access_token}"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["msg"] == "Value error, Invalid state"

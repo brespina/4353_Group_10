@@ -80,12 +80,20 @@ const Profile = () => {
         }, 1500);
       }
     } catch (error) {
-      console.log(error);
-      setDisplayBox(true);
-      setDisplayMessage("Error saving profile.");
-      setTimeout(() => {
-        setDisplayBox(false);
-      }, 1500)
+      if (error.response.status === 422) {
+        const errorMessage = error.response.data.detail[0].msg.split(", ")[1];
+        setDisplayMessage(errorMessage);
+        setDisplayBox(true);
+        setTimeout(() => {
+          setDisplayBox(false);
+        }, 1500);
+      } else {
+        setDisplayMessage("Something went wrong. Please try again.");
+        setDisplayBox(true);
+        setTimeout(() => {
+          setDisplayBox(false);
+        }, 1500);
+      }
     }
   };
 

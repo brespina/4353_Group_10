@@ -1,6 +1,6 @@
 // src/components/ProfileForm.tsx
-import { useState, ChangeEvent, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../components/api";
 
 interface FormData {
@@ -12,46 +12,54 @@ interface FormData {
   zipcode: string;
 }
 
-const ProfileForm= () => {
+const ProfileForm = () => {
   const [formData, setFormData] = useState<FormData>({
-    full_name: '',
-    address1: '',
-    address2: '',
-    city: '',
-    state: '',
-    zipcode: '',
+    full_name: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    zipcode: "",
   });
-  
-  const navigate = useNavigate();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const navigate = useNavigate();
+  const [displayBox, setDisplayBox] = useState(false);
+  const [displayMessage, setDisplayMessage] = useState("");
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
   };
-  
-  const token = localStorage.getItem('token');
-  
+
+  const token = localStorage.getItem("token");
+
   const handleSubmit = async (e: FormEvent) => {
-    console.log(JSON.stringify(formData));
     e.preventDefault();
     try {
-      const response = await api.post('/api/user/', formData, {
+      const response = await api.post("/api/user/", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       if (response.status === 200) {
-        navigate('/home');
+        navigate("/home");
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
+      if (error.response.status === 422) {
+        const errorMessage = error.response.data.detail[0].msg.split(", ")[1];
+        setDisplayBox(true);
+        setDisplayMessage(errorMessage);
+        setTimeout(() => {
+          setDisplayBox(false);
+        }, 2000);
+      }
     }
-
-    navigate('/home');
-    console.log(formData);
   };
 
   return (
@@ -106,7 +114,7 @@ const ProfileForm= () => {
           />
         </div>
         <div>
-          <label htmlFor="state">State (required)</label> 
+          <label htmlFor="state">State (required)</label>
           <select
             id="state"
             name="state"
@@ -165,10 +173,12 @@ const ProfileForm= () => {
             <option value="WV">West Virginia</option>
             <option value="WI">Wisconsin</option>
             <option value="WY">Wyoming</option>
-          </select>  
+          </select>
         </div>
         <div>
-          <label htmlFor="zipcode">Zipcode (required, at least 5 characters)</label>
+          <label htmlFor="zipcode">
+            Zipcode (required, at least 5 characters)
+          </label>
           <input
             type="text"
             id="zipcode"
@@ -181,8 +191,12 @@ const ProfileForm= () => {
           />
         </div>
         <button type="submit">Save</button>
-        
       </form>
+      {displayBox && (
+        <div className="error-box" onClick={() => setDisplayBox(false)} style={{ marginTop: "10px"}}>
+          {displayMessage}
+        </div>
+      )}
     </div>
   );
 };

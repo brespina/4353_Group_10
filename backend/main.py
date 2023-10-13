@@ -1,13 +1,12 @@
+import jwt
+import pytz
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-
-import jwt
-import pytz
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
+from pydantic import BaseModel, constr, field_validator
 
 users = {}
 user_details = {}
@@ -36,14 +35,36 @@ class User(BaseModel):
     username: str
     password: str  # probably need to hash this or something
 
+    @field_validator("username")
+    def username_alphanumeric(cls, v):
+        assert v.isalnum(), "must be alphanumeric"
+        return v
+
+states = [ 'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
+           'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
+           'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
+           'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
+           'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
 class UserDetails(BaseModel):
-    full_name: str
-    address1: str
-    address2: str | None = None
-    city: str
-    state: str
-    zipcode: int
+    full_name: constr(min_length=1, max_length=50)
+    address1: constr(min_length=1, max_length=100)
+    address2: constr(max_length=100) = ""
+    city: constr(min_length=1, max_length=100)
+    state: constr(min_length=2, max_length=2)
+    zipcode: constr(min_length=5, max_length=9)
+
+    @field_validator("state")
+    def validate_state(cls, v):
+        if v not in states:
+            raise ValueError("Invalid state")
+        return v
+    
+    @field_validator("full_name")
+    def validate_full_name(cls, v):
+        if ' ' not in v:
+            raise ValueError("Full name must contain space")
+        return v.title()
 
 
 class FuelData(BaseModel):
@@ -118,8 +139,11 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
     user_details[user] = details
     return {"message": "User details registered successfully!"}
 
+
 @app.put("/api/user/", description="Updates user details")
-async def update_user_details(details: UserDetails, token: str = Depends(oauth2_scheme)):
+async def update_user_details(
+    details: UserDetails, token: str = Depends(oauth2_scheme)
+):
     user = decode_token(token)
     if user not in user_details:
         raise HTTPException(status_code=400, detail="User details not registered")
@@ -143,9 +167,13 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
     if user not in user_details:
         raise HTTPException(status_code=400, detail="Add user details first")
 
-    data.delivery_address = user_details[
-        user
-    ].address1  # We'll change this once we change frontend
+    data.delivery_address = (
+        user_details[user].address1
+        + user_details[user].address2 + ", "
+        + user_details[user].city + ", "
+        + user_details[user].state + " "
+        + user_details[user].zipcode
+    )
     if user not in fuel_history:
         data.id = 1
     else:
