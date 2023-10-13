@@ -75,6 +75,7 @@ const Register: React.FC = () => {
               value={password}
               onChange={(s) => setPassword(s.target.value)}
               autoComplete="off"
+              minLength={8}
             />
             <span
               className="password-icon-container"
