@@ -82,7 +82,7 @@ class FuelData(BaseModel):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
 # Not implementing it yet
-def calculate_price() -> float:
+def calculate_price() -> float: # type: ignore
     pass
 
 
@@ -188,6 +188,9 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
     current_time_cst = datetime.now(cst)
     data.date_requested = format_datetime(current_time_cst)
 
+    # later we will use pricing module to determine total_amound_due in backend
+    if data.gallons_requested * data.suggested_price != data.total_amount_due:
+        raise HTTPException(status_code=422, detail="Value error, Invalid state")
     fuel_history[user].append(data)
     return {"message": "Fuel quote registered successfully!"}
 
