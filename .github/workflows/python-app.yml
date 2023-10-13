@@ -4,7 +4,7 @@
 name: FastAPI
 
 on: [push, pull_request]
-  
+
 permissions:
   contents: read
 
@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel pytz
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
       - name: Lint with Ruff
         run: |
           pip install ruff
