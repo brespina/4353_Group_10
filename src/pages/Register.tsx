@@ -62,6 +62,7 @@ const Register: React.FC = () => {
               required
               value={username}
               onChange={(s) => setUsername(s.target.value)}
+              autoComplete="off"
             />
           </div>
           <div className="password-input">
@@ -73,6 +74,7 @@ const Register: React.FC = () => {
               required
               value={password}
               onChange={(s) => setPassword(s.target.value)}
+              autoComplete="off"
             />
             <span
               className="password-icon-container"

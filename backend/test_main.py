@@ -7,8 +7,6 @@ client = TestClient(app)
 
 def get_access_token(username="testuser", password="testpassword"):
     response = client.post("/api/token", data={"username": username, "password": password})
-    if response.status_code != 200:
-        raise Exception(f"Failed to get token. Response: {response.json()}")
     return response.json()["access_token"]
 
 
@@ -145,5 +143,27 @@ def test_get_quote_wo_fuel_history():
     assert response.status_code == 501
     assert response.json() == {"detail": "No fuel quotes registered"}
 
+# Test change pofile endpoint
+def test_change_profile():
+    token = get_access_token()
+    response = client.put("/api/user/", json={
+        "full_name": "John Doe",
+        "address1": "123 Main St",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipcode": 12345
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "User details updated successfully!"}
 
-# TODO Add more tests on fuelquote endpoints
+def test_change_profile_wo_user_details():
+    token = get_access_token("testuser2", "testpassword")
+    response = client.put("/api/user/", json={
+        "full_name": "John Doe",
+        "address1": "123 Main St",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipcode": 12345
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 400
+    assert response.json() == {"detail": "User details not registered"}

@@ -118,6 +118,15 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
     user_details[user] = details
     return {"message": "User details registered successfully!"}
 
+@app.put("/api/user/", description="Updates user details")
+async def update_user_details(details: UserDetails, token: str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    if user not in user_details:
+        raise HTTPException(status_code=400, detail="User details not registered")
+
+    user_details[user] = details
+    return {"message": "User details updated successfully!"}
+
 
 @app.get("/api/user/", description="Returns user details")
 async def get_user_details(token: str = Depends(oauth2_scheme)):

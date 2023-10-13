@@ -67,6 +67,7 @@ const Login: React.FC = () => {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                autoComplete="off"
               />
               <div className="password-input">
                 <label htmlFor="password">Password</label>
@@ -77,6 +78,7 @@ const Login: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="off"
                 />
                 <span
                   className="password-icon-container"
