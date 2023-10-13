@@ -21,6 +21,17 @@ def test_register_user(username="testuser", password="testpassword"):
     assert response.json() == {"message": "User registered successfully!"}
 
 
+def test_register_user_short_password(username="testuser", password="t"):
+    response = client.post(
+        "/api/register", json={"username": username, "password": password}
+    )
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"][0]["msg"]
+        == "String should have at least 8 characters"
+    )
+
+
 def test_register_existing_user():
     response = client.post(
         "/api/register", json={"username": "testuser", "password": "testpassword"}
@@ -285,9 +296,8 @@ def test_invalid_fuel_quote_post():
             "total_amount_due": 0,
             "date_requested": "10/12/2023",
             "id": 1,
-        }, 
-        headers={"Authorization": f"Bearer {access_token}"}
+        },
+        headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 422
     assert response.json() == {"detail": "Value error, Invalid state"}
-

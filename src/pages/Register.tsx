@@ -39,7 +39,7 @@ const Register: React.FC = () => {
       }
     } catch (error) {
       setDisplayBox(true);
-      setDisplayMessage("Registration failed. Try a different username.");
+      setDisplayMessage("Registration failed.");
       setTimeout(() => {
         setDisplayBox(false);
       }, 5000);

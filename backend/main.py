@@ -33,7 +33,7 @@ EXPIRATION = 24
 
 class User(BaseModel):
     username: str
-    password: str  # probably need to hash this or something
+    password: Annotated[str, StringConstraints(min_length=8)]  # probably need to hash this or something
 
     @field_validator("username")
     def username_alphanumeric(cls, v):
