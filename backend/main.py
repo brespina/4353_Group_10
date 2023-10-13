@@ -79,6 +79,10 @@ class FuelData(BaseModel):
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
+# Not implementing it yet
+def calculate_price() -> float:
+    pass
+
 
 def format_datetime(dt: datetime) -> str:
     return dt.strftime("%m/%d/%Y %H:%M:%S")
