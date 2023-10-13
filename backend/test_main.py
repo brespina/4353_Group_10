@@ -13,8 +13,8 @@ def get_access_token(username="testuser", password="testpassword"):
 
 
 # Test registration and token generation
-def test_register_user():
-    response = client.post("/api/register", json={"username": "testuser", "password": "testpassword"})
+def test_register_user(username="testuser", password="testpassword"):
+    response = client.post("/api/register", json={"username": username, "password": password})
     assert response.status_code == 200
     assert response.json() == {"message": "User registered successfully!"}
 
@@ -23,8 +23,8 @@ def test_register_existing_user():
     assert response.status_code == 400
     assert response.json() == {"detail": "Username already registered"}
 
-def test_login():
-    response = client.post("/api/token", data={"username": "testuser", "password": "testpassword"})
+def test_login(username="testuser", password="testpassword"):
+    response = client.post("/api/token", data={"username": username, "password": password})
     assert response.status_code == 200
     assert "access_token" in response.json()
     assert "token_type" in response.json()
@@ -97,12 +97,53 @@ def test_add_new_fuel_quote():
     assert response.status_code == 200
     assert response.json() == {"message": "Fuel quote registered successfully!"}
 
+def test_double_add_fuel_quote():
+    test_add_new_fuel_quote()
+
 def test_get_fuel_quotes():
     token = get_access_token()
     response = client.get("/api/fuel_quote/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert isinstance(response.json(), list)
     assert len(response.json()) > 0
+
+def test_get_fuel_quote_wo_user_details():
+    response = client.post("/api/register", json={"username": "testuser2", "password": "testpassword"})
+    token = get_access_token("testuser2", "testpassword")
+    response = client.get("/api/fuel_quote/", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Add user details first"}
+
+def test_add_fuel_quote_wo_user_details():
+    response = client.post("/api/register", json={"username": "testuser3", "password": "testpassword"})
+    token = get_access_token("testuser3", "testpassword")
+    response = client.post("/api/fuel_quote/", json={
+        "gallons_requested": 222,
+        "delivery_address": "Not Required",
+        "delivery_date": "10/20/2023",
+        "suggested_price": 2.75,
+        "total_amount_due": 550.0,
+        "date_requested": "10/12/2023",
+        "id": 1
+    }, headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Add user details first"}
+
+def test_get_quote_wo_fuel_history():
+    test_register_user("testuser4", "testpassword")
+    test_login("testuser4", "testpassword")
+    token = get_access_token("testuser4", "testpassword")
+    response = client.post("/api/user/", json={
+        "full_name": "Test Four",
+        "address1": "123 Main St",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipcode": 12345
+    }, headers={"Authorization": f"Bearer {token}"})
+
+    response = client.get("/api/fuel_quote/", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 501
+    assert response.json() == {"detail": "No fuel quotes registered"}
 
 
 # TODO Add more tests on fuelquote endpoints

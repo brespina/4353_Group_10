@@ -155,5 +155,5 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme)):
     if user not in user_details:
         raise HTTPException(status_code=400, detail="Add user details first")
     if user not in fuel_history:
-        raise HTTPException(status_code=204, detail="No fuel quotes registered")
+        raise HTTPException(status_code=501, detail="No fuel quotes registered")
     return fuel_history[user]
