@@ -7,7 +7,7 @@ interface History {
   date_requested: string;
   delivery_date: string;
   delivery_address: string;
-  suggested_price: string;
+  suggested_price: number;
 }
 
 const FuelHistory = () => {
@@ -39,6 +39,15 @@ const FuelHistory = () => {
     }
   };
 
+  function multiply({ gallons_requested, suggested_price }: History): number {
+    return gallons_requested * suggested_price;
+  }
+
+  const totalCost = fuelHistoryData.reduce(
+    (total, history) => total + multiply(history),
+    0
+  );
+
   const greyedOutStyle: React.CSSProperties = {
     backgroundColor: "#f2f2f2", // Grey background color
     color: "#000", // Grey text color
@@ -55,7 +64,7 @@ const FuelHistory = () => {
             aria-expanded={expandedIds.includes(history.id)}
             aria-controls={`details-${history.id}`}
           >
-            {history.date_requested}
+            {history.date_requested} delivery date: {history.delivery_date}
           </button>
           {expandedIds.includes(history.id) && (
             <div className="details">
@@ -100,7 +109,7 @@ const FuelHistory = () => {
                 <input
                   style={greyedOutStyle}
                   type="text"
-                  value={history.total_amount_due}
+                  value={totalCost}
                   readOnly
                 />
               </div>

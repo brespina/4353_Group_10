@@ -65,6 +65,14 @@ const FuelQuoteForm = () => {
       }, 2000);
       return;
     }
+    if (formData.gallons < 0) {
+      setDisplayBox(true);
+      setDisplayMessage("Please enter a valid integer.");
+      setTimeout(() => {
+        setDisplayBox(false);
+      }, 2000);
+      return;
+    }
     try {
       const response = await api.post(
         "/api/fuel_quote/",
