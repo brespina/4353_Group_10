@@ -138,5 +138,24 @@ input:invalid
 }
 
 
+.error-box {
+  background-color: rgb(255, 255, 255);
+  color: red;
+  padding: 10px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.3s;
+}
 
-
+.success-box {
+  background-color: white;
+  color: rgb(13, 226, 13);
+  padding: 10px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.3s;
+}

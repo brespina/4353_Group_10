@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "../components/api";
 
 interface History {
     id: number;
-    gallons: number;
+    gallons_requested: number;
     date_requested: string;
     delivery_date: string;
     delivery_address: string;
@@ -11,34 +12,25 @@ interface History {
 
 const FuelHistory = () => {
     const [expandedIds, setExpandedIds] = useState<number[]>([]);
+    const [fuelHistoryData, setFuelHistoryData] = useState<History[]>([]);
+    const token = localStorage.getItem("token");
 
-    // we'll fetch these info from DB later
-    const fuelHistoryData: History[] = [
-        {
-            id: 1,
-            gallons: 50,
-            date_requested: "09/20/2023",
-            delivery_date: "01/01/2024",
-            delivery_address: "123 Main St, Houston TX 77001",
-            suggested_price: "3.14",
-        },
-        {
-            id: 2,
-            gallons: 100,
-            date_requested: "09/21/2023",
-            delivery_date: "01/12/2024",
-            delivery_address: "123 Main St, New York City NY 10001",
-            suggested_price: "3.14",
-        },
-        {
-            id: 3,
-            gallons: 150,
-            date_requested: "09/26/2023",
-            delivery_date: "11/23/2023",
-            delivery_address: "123 Main St, Houston TX 77001",
-            suggested_price: "3.14",
-        },
-    ];
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const response = await api.get("/api/fuel_quote/", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setFuelHistoryData(response.data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchHistory();
+    }, [token]);
+
     const toggleExpand = (id: number) => {
         if (expandedIds.includes(id)) {
             setExpandedIds(expandedIds.filter((expandedId) => expandedId !== id));
@@ -46,7 +38,6 @@ const FuelHistory = () => {
             setExpandedIds([...expandedIds, id]);
         }
     };
-
 
     const greyedOutStyle: React.CSSProperties = {
         backgroundColor: "#f2f2f2", // Grey background color
@@ -69,11 +60,11 @@ const FuelHistory = () => {
                     {expandedIds.includes(history.id) && (
                         <div className="details">
                             <div>
-                                <label htmlFor="gallons">Gallons requested:</label>
+                                <label htmlFor="gallons_requested">Gallons requested:</label>
                                 <input
                                     style={greyedOutStyle}
                                     type="text"
-                                    value={history.gallons}
+                                    value={history.gallons_requested}
                                     readOnly
                                 />
                             </div>

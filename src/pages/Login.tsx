@@ -13,6 +13,7 @@ const Login: React.FC = () => {
   const [shouldShowProfileForm, setShouldShowProfileForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [displayBox, setDisplayBox] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -38,6 +39,10 @@ const Login: React.FC = () => {
       return true; // Login successful
 
     } catch (error) {
+      setDisplayBox(true);
+      setTimeout(() => {
+        setDisplayBox(false);
+      }, 5000);
       return false; // Login failed
     }
   };
@@ -89,8 +94,14 @@ const Login: React.FC = () => {
                 Not registered? <Link to="/register">Create an account</Link>
               </p>
             </form>
+            {displayBox && (
+          <div className="error-box" onClick={() => setDisplayBox(false)}>
+            Invalid credentials provided!
+          </div>
+        )}
           </>
         )}
+
       </div>
     </div>
   );

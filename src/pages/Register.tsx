@@ -6,31 +6,43 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Company from "../components/Company";
 import api from "../components/api";
 
-
 const Register: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [displayBox, setDisplayBox] = useState(false);
+  const [displayMessage, setDisplayMessage] = useState("");
 
   const handleSubmit = async (s: FormEvent) => {
     s.preventDefault();
     try {
-      const response = await api.post("/api/register", {
-        username,
-        password
-      }, {
-        headers: {
-          "Content-Type": "application/json"
+      const response = await api.post(
+        "/api/register",
+        {
+          username,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
       if (response.status === 200) {
-        navigate("/");
-      } else {
-        console.log("Registration failed");
+        setDisplayBox(true);
+        setDisplayMessage("Successfully signed up! Redirecting...");
+        setTimeout(() => {
+          navigate("/");
+          setDisplayBox(false);
+        }, 1500);
       }
     } catch (error) {
-      console.log(error);
+      setDisplayBox(true);
+      setDisplayMessage("Registration failed. Try a different username.");
+      setTimeout(() => {
+        setDisplayBox(false);
+      }, 5000);
     }
   };
 
@@ -78,6 +90,18 @@ const Register: React.FC = () => {
             Already registered? <Link to="/">Sign In</Link>
           </p>
         </form>
+        {displayBox && (
+          <div
+            className={`notification-box ${
+              displayMessage === "Successfully signed up! Redirecting..."
+                ? "success-box"
+                : "error-box"
+            }`}
+            onClick={() => setDisplayBox(false)}
+          >
+            {displayMessage}
+          </div>
+        )}
       </div>
     </div>
   );
