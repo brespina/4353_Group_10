@@ -1,13 +1,13 @@
-import jwt
-from typing import Annotated
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
-from datetime import timezone
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
+
+import jwt
 import pytz
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
 
 users = {}
 user_details = {}
@@ -45,6 +45,7 @@ class UserDetails(BaseModel):
     state: str
     zipcode: int
 
+
 class FuelData(BaseModel):
     gallons_requested: int
     delivery_address: str
@@ -55,14 +56,12 @@ class FuelData(BaseModel):
     id: int
 
 
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
 
-
-
 def format_datetime(dt: datetime) -> str:
-    return dt.strftime('%m/%d/%Y %H:%M:%S')
+    return dt.strftime("%m/%d/%Y %H:%M:%S")
+
 
 def create_token(data: dict):
     to_encode = data.copy()
@@ -74,7 +73,7 @@ def create_token(data: dict):
 
 def decode_token(token: str):
     try:
-        decode = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM[0])
+        decode = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
         username: str = decode.get("user")
         if username not in users:
             raise HTTPException(status_code=401, detail="Invalid token")
@@ -109,6 +108,7 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     else:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
+
 @app.post("/api/user/", description="Adds user details")
 async def add_user_details(details: UserDetails, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
@@ -124,26 +124,30 @@ async def get_user_details(token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
     if user not in user_details:
         raise HTTPException(status_code=400, detail="User details not registered")
-    
+
     return user_details[user]
+
 
 @app.post("/api/fuel_quote/", description="Adds a fuel quote")
 async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
     if user not in user_details:
         raise HTTPException(status_code=400, detail="Add user details first")
-    
-    data.delivery_address = user_details[user].address1 # We'll change this once we change frontend
+
+    data.delivery_address = user_details[
+        user
+    ].address1  # We'll change this once we change frontend
     if user not in fuel_history:
         data.id = 1
     else:
         data.id = len(fuel_history[user]) + 1
-    cst = pytz.timezone('America/Chicago')
-    current_time_cst = datetime.now(cst)    
+    cst = pytz.timezone("America/Chicago")
+    current_time_cst = datetime.now(cst)
     data.date_requested = format_datetime(current_time_cst)
 
     fuel_history[user].append(data)
     return {"message": "Fuel quote registered successfully!"}
+
 
 @app.get("/api/fuel_quote/", description="Returns a list of fuel quotes")
 async def get_fuel_quote(token: str = Depends(oauth2_scheme)):
@@ -153,4 +157,3 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme)):
     if user not in fuel_history:
         raise HTTPException(status_code=204, detail="No fuel quotes registered")
     return fuel_history[user]
-
