@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel, constr, field_validator
+from pydantic import BaseModel, StringConstraints, field_validator
 
 users = {}
 user_details = {}
@@ -40,26 +40,28 @@ class User(BaseModel):
         assert v.isalnum(), "must be alphanumeric"
         return v
 
+
 states = [ 'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
            'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
            'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
            'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
            'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
+
 class UserDetails(BaseModel):
-    full_name: constr(min_length=1, max_length=50)
-    address1: constr(min_length=1, max_length=100)
-    address2: constr(max_length=100) = ""
-    city: constr(min_length=1, max_length=100)
-    state: constr(min_length=2, max_length=2)
-    zipcode: constr(min_length=5, max_length=9)
+    full_name: Annotated[str, StringConstraints(min_length=1, max_length=50)]
+    address1: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+    address2: Annotated[str, StringConstraints(max_length=100)] = ""
+    city: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+    state: Annotated[str, StringConstraints(min_length=2, max_length=2)]
+    zipcode: Annotated[str, StringConstraints(min_length=5, max_length=9)]
 
     @field_validator("state")
     def validate_state(cls, v):
         if v not in states:
             raise ValueError("Invalid state")
         return v
-    
+
     @field_validator("full_name")
     def validate_full_name(cls, v):
         if ' ' not in v:
