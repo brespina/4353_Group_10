@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import api from "../components/api";
 
 interface History {
@@ -16,7 +16,8 @@ const FuelHistory = () => {
   const [fuelHistoryDataExists, setFuelHistoryDataExists] = useState(false);
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
+  // using useLayoutEffect instead of useEffect may hurt performance
+  useLayoutEffect(() => {
     const fetchHistory = async () => {
       try {
         const response = await api.get("/api/fuel_quote/", {
@@ -25,12 +26,12 @@ const FuelHistory = () => {
           },
         });
         setFuelHistoryData(response.data);
-        setFuelHistoryDataExists(true);
       } catch (error) {
         console.error(error);
       }
     };
     fetchHistory();
+    setFuelHistoryDataExists(true);
   }, [token]);
 
   const toggleExpand = (id: number) => {
