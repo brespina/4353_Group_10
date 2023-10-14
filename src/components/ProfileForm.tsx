@@ -62,6 +62,12 @@ const ProfileForm = () => {
             setDisplayBox(false);
           }, 2000);
         }
+      } else {
+        setDisplayMessage("Something went wrong. Please try again.");
+        setDisplayBox(true);
+        setTimeout(() => {
+          setDisplayBox(false);
+        }, 2000);
       }
     }
   };
@@ -79,6 +85,7 @@ const ProfileForm = () => {
             value={formData.full_name}
             onChange={handleChange}
             required
+            minLength={1}
             maxLength={50}
           />
         </div>
@@ -91,6 +98,7 @@ const ProfileForm = () => {
             value={formData.address1}
             onChange={handleChange}
             required
+            minLength={1}
             maxLength={100}
           />
         </div>
@@ -114,6 +122,7 @@ const ProfileForm = () => {
             value={formData.city}
             onChange={handleChange}
             required
+            minLength={1}
             maxLength={100}
           />
         </div>

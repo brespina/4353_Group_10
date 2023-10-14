@@ -115,6 +115,7 @@ const Profile = () => {
             value={formData.full_name}
             onChange={handleChange}
             disabled={!isEditable}
+            minLength={1}
             maxLength={50}
             style={isEditable ? undefined : greyedOutStyle}
           />
@@ -128,6 +129,7 @@ const Profile = () => {
             value={formData.address1}
             onChange={handleChange}
             disabled={!isEditable}
+            minLength={1}
             maxLength={100}
             style={isEditable ? undefined : greyedOutStyle}
           />
@@ -154,6 +156,7 @@ const Profile = () => {
             value={formData.city}
             onChange={handleChange}
             disabled={!isEditable}
+            minLength={1}
             maxLength={100}
             style={isEditable ? undefined : greyedOutStyle}
           />
@@ -166,6 +169,7 @@ const Profile = () => {
             style={isEditable ? undefined : greyedOutStyle}
             value={formData.state}
             onChange={handleChange}
+            required
             disabled={!isEditable}
           >
             <option value="">Select State</option>
