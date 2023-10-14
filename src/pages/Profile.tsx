@@ -1,4 +1,5 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { AxiosError, isAxiosError } from "axios";
 import api from "../components/api";
 
 interface ProfileData {
@@ -24,9 +25,9 @@ const Profile = () => {
   const [displayMessage, setDisplayMessage] = useState("");
 
   const greyedOutStyle: React.CSSProperties = {
-    backgroundColor: '#E0E0E0', // Grey background color
-    color: '#000', // Grey text color
-    cursor: 'not-allowed', // Change cursor to "not-allowed"
+    backgroundColor: "#E0E0E0", // Grey background color
+    color: "#000", // Grey text color
+    cursor: "not-allowed", // Change cursor to "not-allowed"
   };
 
   useEffect(() => {
@@ -80,19 +81,23 @@ const Profile = () => {
         }, 1500);
       }
     } catch (error) {
-      if (error.response.status === 422) {
-        const errorMessage = error.response.data.detail[0].msg.split(", ")[1];
-        setDisplayMessage(errorMessage);
-        setDisplayBox(true);
-        setTimeout(() => {
-          setDisplayBox(false);
-        }, 1500);
+      if (isAxiosError(error)) {
+        const err = error as AxiosError;
+        if (err.response?.status === 422) {
+          //const errorMessage = error.response?.data.detail[0].msg.split(", ")[0];
+          const errorMessage = error.response?.data.detail[0].msg;
+          setDisplayMessage(errorMessage);
+          setDisplayBox(true);
+          setTimeout(() => {
+            setDisplayBox(false);
+          }, 2000);
+        }
       } else {
         setDisplayMessage("Something went wrong. Please try again.");
         setDisplayBox(true);
         setTimeout(() => {
           setDisplayBox(false);
-        }, 1500);
+        }, 2000);
       }
     }
   };
@@ -245,7 +250,7 @@ const Profile = () => {
               : "error-box"
           }`}
           onClick={() => setDisplayBox(false)}
-          style={{ marginTop: "20px"}}
+          style={{ marginTop: "20px" }}
         >
           {displayMessage}
         </div>

@@ -1,6 +1,7 @@
 // src/components/ProfileForm.tsx
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { AxiosError, isAxiosError } from "axios";
 import api from "../components/api";
 
 interface FormData {
@@ -51,13 +52,16 @@ const ProfileForm = () => {
       }
     } catch (error) {
       // console.log(error);
-      if (error.response.status === 422) {
-        const errorMessage = error.response.data.detail[0].msg.split(", ")[1];
-        setDisplayBox(true);
-        setDisplayMessage(errorMessage);
-        setTimeout(() => {
-          setDisplayBox(false);
-        }, 2000);
+      if (isAxiosError(error)) {
+        const err = error as AxiosError;
+        if (err.response?.status === 422) {
+          const errorMessage = error.response?.data.detail[0].msg;
+          setDisplayBox(true);
+          setDisplayMessage(errorMessage);
+          setTimeout(() => {
+            setDisplayBox(false);
+          }, 2000);
+        }
       }
     }
   };
@@ -193,7 +197,11 @@ const ProfileForm = () => {
         <button type="submit">Save</button>
       </form>
       {displayBox && (
-        <div className="error-box" onClick={() => setDisplayBox(false)} style={{ marginTop: "10px"}}>
+        <div
+          className="error-box"
+          onClick={() => setDisplayBox(false)}
+          style={{ marginTop: "10px" }}
+        >
           {displayMessage}
         </div>
       )}
