@@ -28,7 +28,7 @@ app.add_middleware(
 # Ideally we want in a .env file but its ok :)
 SECRET_KEY = "RUHqtDiJSJVAoyVtrSH9bbk1pQqEME7gUiYfLjveXGVlObYhYeqKJB07jvf38nC"
 ALGORITHM = ["HS256"]
-EXPIRATION = 24
+EXPIRATION = 4380
 
 
 class User(BaseModel):
