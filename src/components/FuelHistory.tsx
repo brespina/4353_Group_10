@@ -70,7 +70,7 @@ const FuelHistory = () => {
               aria-expanded={expandedIds.includes(history.id)}
               aria-controls={`details-${history.id}`}
             >
-              {history.date_requested} delivery date: {history.delivery_date}
+              {history.date_requested} Delivers On: {history.delivery_date}
             </button>
             {expandedIds.includes(history.id) && (
               <div className="details">

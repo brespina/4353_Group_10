@@ -1,17 +1,26 @@
 import jwt
 import pytz
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, StringConstraints, field_validator
+from dotenv import load_dotenv
+import os
+from xata import XataClient
+import bcrypt
 
-users = {}
-user_details = {}
-fuel_history = defaultdict(list)
+load_dotenv()
+SECRET_KEY: str = os.getenv("SECRET_KEY")
+ALGORITHM: list = os.getenv("ALGORITHM").split(',')
+EXPIRATION: float = float(os.getenv("EXPIRATION"))
+XATA_API_KEY: str = os.getenv("XATA_API_KEY")
+XATA_BRANCH: str = os.getenv("XATA_BRANCH")
+DB_URL: str = os.getenv("DB_URL")
 
+# Loading DB
+db = XataClient(db_url=DB_URL, api_key=XATA_API_KEY, branch_name=XATA_BRANCH)
 app = FastAPI()
 
 # Allow CORS
@@ -24,11 +33,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Ideally we want in a .env file but its ok :)
-SECRET_KEY = "RUHqtDiJSJVAoyVtrSH9bbk1pQqEME7gUiYfLjveXGVlObYhYeqKJB07jvf38nC"
-ALGORITHM = ["HS256"]
-EXPIRATION = 4380
 
 
 class User(BaseModel):
@@ -88,7 +92,9 @@ def calculate_price() -> float: # type: ignore
 
 
 def format_datetime(dt: datetime) -> str:
-    return dt.strftime("%m/%d/%Y %H:%M:%S")
+    dt = datetime.fromisoformat(dt)
+    dt = dt.astimezone(pytz.timezone("America/Chicago"))
+    return dt.strftime("%m/%d/%Y at %H:%M")
 
 
 def create_token(data: dict):
@@ -101,10 +107,8 @@ def create_token(data: dict):
 
 def decode_token(token: str):
     try:
-        decode = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+        decode = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM[0])
         username: str = decode.get("user")
-        if username not in users:
-            raise HTTPException(status_code=401, detail="Invalid token")
         return username
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -113,25 +117,44 @@ def decode_token(token: str):
 @app.post("/api/register", description="Register a new user")
 async def register(user: User):
     # Check if the user exists
-    if user.username in users:
+    response = db.sql().query(
+        "SELECT * FROM \"Users\" WHERE username = $1", [user.username]
+    )
+
+    if len(response) == 1:
         raise HTTPException(status_code=400, detail="Username already registered")
 
-    # We will implement hashing to store the pass to db later
-    users[user.username] = user.password
+    password = bcrypt.hashpw((user.password).encode(), bcrypt.gensalt())
+    password = password.decode()
+    
+    db.sql().query(
+        "INSERT INTO \"Users\" (username, password) VALUES ($1, $2)",
+        [user.username, password]
+    )
+
     return {"message": "User registered successfully!"}
 
 
 @app.post("/api/token", description="Get user token")
 async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    if data.username in users and users[data.username] == data.password:
+    response = db.sql().query(
+        "SELECT username, password, require_details FROM \"Users\" WHERE username = $1 LIMIT 1",
+        [data.username]
+    )
+
+    if len(response) != 1:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    stored_pass = response["records"][0]["password"]
+
+    checkpass = bcrypt.checkpw((data.password).encode(), stored_pass.encode())
+
+    if data.username == response["records"][0]["username"] and checkpass:
         token = create_token(data={"user": data.username})
-        require_details = 0
-        if data.username not in user_details:
-            require_details = 1
         return {
             "access_token": token,
             "token_type": "bearer",
-            "require_details": require_details,
+            "require_details": response["records"][0]["require_details"],
         }
     else:
         raise HTTPException(status_code=401, detail="Invalid username or password")
@@ -140,10 +163,18 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 @app.post("/api/user/", description="Adds user details")
 async def add_user_details(details: UserDetails, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    if user in user_details:
+    response = db.sql().query("SELECT require_details FROM \"Users\" WHERE username = $1", [user])
+    if len(response) != 1:
+        return HTTPException(status_code=400, detail="User not registered")
+        
+    if response["records"][0]["require_details"] == False:
         raise HTTPException(status_code=400, detail="User details already registered")
+    
+    db.sql().query(
+        "UPDATE \"Users\" SET full_name = $1, address1 = $2, address2 = $3, city = $4, state = $5, zipcode = $6, require_details = FALSE WHERE username = $7",
+        [details.full_name, details.address1, details.address2, details.city, details.state, details.zipcode, user]
+    )
 
-    user_details[user] = details
     return {"message": "User details registered successfully!"}
 
 
@@ -152,55 +183,108 @@ async def update_user_details(
     details: UserDetails, token: str = Depends(oauth2_scheme)
 ):
     user = decode_token(token)
-    if user not in user_details:
-        raise HTTPException(status_code=400, detail="User details not registered")
+    response = db.sql().query("SELECT require_details FROM \"Users\" WHERE username = $1", [user])
+    if len(response) != 1:
+        return HTTPException(status_code=400, detail="User not registered")
+    
+    db.sql().query(
+        "UPDATE \"Users\" SET full_name = $1, address1 = $2, address2 = $3, city = $4, state = $5, zipcode = $6 WHERE username = $7",
+        [details.full_name, details.address1, details.address2, details.city, details.state, details.zipcode, user]
+    )
 
-    user_details[user] = details
     return {"message": "User details updated successfully!"}
 
 
 @app.get("/api/user/", description="Returns user details")
 async def get_user_details(token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    if user not in user_details:
-        raise HTTPException(status_code=400, detail="User details not registered")
 
-    return user_details[user]
+    response = db.sql().query("SELECT full_name, address1, address2, city, state, zipcode FROM \"Users\" WHERE username = $1", [user])
+    record = response["records"][0]
+
+    details = UserDetails(
+        full_name=record["full_name"], 
+        address1=record["address1"],
+        address2=record["address2"],
+        city=record["city"],
+        state=record["state"],
+        zipcode=record["zipcode"]
+    )
+
+    return details
 
 
 @app.post("/api/fuel_quote/", description="Adds a fuel quote")
 async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    if user not in user_details:
+    response = db.sql().query(
+        "SELECT full_name, address1, address2, city, state, zipcode, require_details FROM \"Users\" WHERE username = $1", [user]
+        )
+
+    if response["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
+    
+
+    record = response["records"][0]
+    details = UserDetails(
+        full_name=record["full_name"], 
+        address1=record["address1"],
+        address2=record["address2"],
+        city=record["city"],
+        state=record["state"],
+        zipcode=record["zipcode"]
+    )
 
     data.delivery_address = (
-        user_details[user].address1
-        + user_details[user].address2 + ", "
-        + user_details[user].city + ", "
-        + user_details[user].state + " "
-        + user_details[user].zipcode
+        details.address1 + details.address2 + ", " + details.city + ", " + details.state + " " + details.zipcode
     )
-    if user not in fuel_history:
-        data.id = 1
-    else:
-        data.id = len(fuel_history[user]) + 1
     cst = pytz.timezone("America/Chicago")
     current_time_cst = datetime.now(cst)
-    data.date_requested = format_datetime(current_time_cst)
+    data.date_requested = current_time_cst.isoformat()
 
     # later we will use pricing module to determine total_amound_due in backend
-    if data.gallons_requested * data.suggested_price != data.total_amount_due:
-        raise HTTPException(status_code=422, detail="Value error, Invalid state")
-    fuel_history[user].append(data)
+    # I am aware that frontend cutting the digits off at 2 decimal but this is rounding but once again will be fixed after pricing module
+    total = data.gallons_requested * data.suggested_price
+    total = round(total, 2)
+    if total != data.total_amount_due:
+        print(data.gallons_requested * data.suggested_price)
+        raise HTTPException(status_code=422, detail="Invalid total amount due")
+    
+    db.sql().query(
+        "INSERT INTO \"FuelData\" (username, gallons_requested, delivery_addr, delivery_date, ppg, total_cost, date_requested) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        [user, data.gallons_requested, data.delivery_address, data.delivery_date, data.suggested_price, data.total_amount_due, data.date_requested]
+    )
+
     return {"message": "Fuel quote registered successfully!"}
 
 
 @app.get("/api/fuel_quote/", description="Returns a list of fuel quotes")
 async def get_fuel_quote(token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
-    if user not in user_details:
+    details = db.sql().query("SELECT require_details FROM \"Users\" WHERE username = $1", [user])
+    if details["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
-    if user not in fuel_history:
+    
+    response = db.sql().query("SELECT gallons_requested, delivery_addr, delivery_date, ppg, total_cost, date_requested FROM \"FuelData\" WHERE username = $1", [user])
+
+    records = response["records"]
+    if len(records) == 0:
         raise HTTPException(status_code=501, detail="No fuel quotes registered")
-    return fuel_history[user]
+    
+    data = []
+    num = 0
+    for record in response["records"]:
+        data.append(
+            FuelData(
+                gallons_requested=record["gallons_requested"],
+                delivery_address=record["delivery_addr"],
+                delivery_date=format_datetime(record["delivery_date"]),
+                suggested_price=record["ppg"],
+                total_amount_due=record["total_cost"],
+                date_requested=format_datetime(record["date_requested"]),
+                id = num
+            )
+        )
+        num += 1
+
+    return data
