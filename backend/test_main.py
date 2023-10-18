@@ -1,27 +1,36 @@
+import os
+
 import pytest
+from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from main import app, get_db
 from xata import XataClient
-from dotenv import load_dotenv
-import os
 
 load_dotenv()
 SECRET_KEY: str = os.getenv("SECRET_KEY")
-ALGORITHM: list = os.getenv("ALGORITHM").split(',')
+ALGORITHM: list = os.getenv("ALGORITHM").split(",")
 EXPIRATION: float = float(os.getenv("EXPIRATION"))
 XATA_API_KEY: str = os.getenv("XATA_API_KEY")
 TEST_DB_URL: str = os.getenv("TEST_DB_URL")
 
 
+db = XataClient(db_url=TEST_DB_URL, api_key=XATA_API_KEY)
+
+
 def override_get_db():
-    db = XataClient(db_url=TEST_DB_URL, api_key=XATA_API_KEY)
     yield db
-    db.sql().query("DELETE FROM \"Users\", \"FuelData\"")
+
+
+@pytest.fixture()
+def test_db():
+    yield
+    db.sql().query("DELETE FROM \"Users\"")
+    db.sql().query("DELETE FROM \"FuelData\"")
+
 
 app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
-
 
 
 def get_access_token(username="testuser", password="testpassword"):
@@ -32,7 +41,7 @@ def get_access_token(username="testuser", password="testpassword"):
 
 
 # Test registration and token generation
-def test_register_user(username="testuser", password="testpassword"):
+def test_register_user(test_db, username="testuser", password="testpassword"):
     response = client.post(
         "/api/register", json={"username": username, "password": password}
     )
@@ -40,7 +49,7 @@ def test_register_user(username="testuser", password="testpassword"):
     assert response.json() == {"message": "User registered successfully!"}
 
 
-def test_register_user_short_password(username="testuser", password="t"):
+def test_register_user_short_password(test_db, username="testuser", password="t"):
     response = client.post(
         "/api/register", json={"username": username, "password": password}
     )
@@ -51,7 +60,7 @@ def test_register_user_short_password(username="testuser", password="t"):
     )
 
 
-def test_register_existing_user():
+def test_register_existing_user(test_db):
     response = client.post(
         "/api/register", json={"username": "testuser", "password": "testpassword"}
     )
@@ -59,7 +68,7 @@ def test_register_existing_user():
     assert response.json() == {"detail": "Username already registered"}
 
 
-def test_login(username="testuser", password="testpassword"):
+def test_login(test_db, username="testuser", password="testpassword"):
     response = client.post(
         "/api/token", data={"username": username, "password": password}
     )
@@ -69,7 +78,7 @@ def test_login(username="testuser", password="testpassword"):
     assert "require_details" in response.json()
 
 
-def test_login_invalid_credentials():
+def test_login_invalid_credentials(test_db):
     response = client.post(
         "/api/token", data={"username": "testuser", "password": "wrongpassword"}
     )
@@ -78,7 +87,7 @@ def test_login_invalid_credentials():
 
 
 # Test user details endpoints
-def test_add_user_details():
+def test_add_user_details(test_db):
     access_token = get_access_token()
     response = client.post(
         "/api/user/",
@@ -95,7 +104,7 @@ def test_add_user_details():
     assert response.json() == {"message": "User details registered successfully!"}
 
 
-def test_add_user_details_existing_user():
+def test_add_user_details_existing_user(test_db):
     access_token = get_access_token()
     response = client.post(
         "/api/user/",
@@ -112,7 +121,7 @@ def test_add_user_details_existing_user():
     assert response.json() == {"detail": "User details already registered"}
 
 
-def test_get_user_details():
+def test_get_user_details(test_db):
     access_token = get_access_token()
     response = client.get(
         "/api/user/", headers={"Authorization": f"Bearer {access_token}"}
@@ -125,14 +134,14 @@ def test_get_user_details():
     assert "zipcode" in response.json()
 
 
-def test_get_user_details_not_registered():
+def test_get_user_details_not_registered(test_db):
     token = "faketoken"
     response = client.get("/api/user/", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid token"}
 
 
-def test_get_user_details_wo_user_details():
+def test_get_user_details_wo_user_details(test_db):
     response = client.post(
         "/api/register", json={"username": "testuser2", "password": "testpassword"}
     )
@@ -142,7 +151,7 @@ def test_get_user_details_wo_user_details():
     assert response.json() == {"detail": "User details not registered"}
 
 
-def test_add_new_fuel_quote():
+def test_add_new_fuel_quote(test_db):
     token = get_access_token()
     response = client.post(
         "/api/fuel_quote/",
@@ -161,11 +170,11 @@ def test_add_new_fuel_quote():
     assert response.json() == {"message": "Fuel quote registered successfully!"}
 
 
-def test_double_add_fuel_quote():
-    test_add_new_fuel_quote()
+def test_double_add_fuel_quote(test_db):
+    test_add_new_fuel_quote(test_db)
 
 
-def test_get_fuel_quotes():
+def test_get_fuel_quotes(test_db):
     token = get_access_token()
     response = client.get(
         "/api/fuel_quote/", headers={"Authorization": f"Bearer {token}"}
@@ -175,7 +184,7 @@ def test_get_fuel_quotes():
     assert len(response.json()) > 0
 
 
-def test_get_fuel_quote_wo_user_details():
+def test_get_fuel_quote_wo_user_details(test_db):
     response = client.post(
         "/api/register", json={"username": "testuser2", "password": "testpassword"}
     )
@@ -187,7 +196,7 @@ def test_get_fuel_quote_wo_user_details():
     assert response.json() == {"detail": "Add user details first"}
 
 
-def test_add_fuel_quote_wo_user_details():
+def test_add_fuel_quote_wo_user_details(test_db):
     response = client.post(
         "/api/register", json={"username": "testuser3", "password": "testpassword"}
     )
@@ -209,7 +218,7 @@ def test_add_fuel_quote_wo_user_details():
     assert response.json() == {"detail": "Add user details first"}
 
 
-def test_get_quote_wo_fuel_history():
+def test_get_quote_wo_fuel_history(test_db):
     test_register_user("testuser4", "testpassword")
     test_login("testuser4", "testpassword")
     token = get_access_token("testuser4", "testpassword")
@@ -233,7 +242,7 @@ def test_get_quote_wo_fuel_history():
 
 
 # Test change pofile endpoint
-def test_change_profile():
+def test_change_profile(test_db):
     token = get_access_token()
     response = client.put(
         "/api/user/",
@@ -250,7 +259,7 @@ def test_change_profile():
     assert response.json() == {"message": "User details updated successfully!"}
 
 
-def test_change_profile_wo_user_details():
+def test_change_profile_wo_user_details(test_db):
     token = get_access_token("testuser2", "testpassword")
     response = client.put(
         "/api/user/",
@@ -267,7 +276,7 @@ def test_change_profile_wo_user_details():
     assert response.json() == {"detail": "User details not registered"}
 
 
-def test_add_user_details_invalid_full_name_and_state():
+def test_add_user_details_invalid_full_name_and_state(test_db):
     access_token = get_access_token()
     response = client.put(
         "/api/user/",
@@ -303,7 +312,7 @@ def test_add_user_details_invalid_full_name_and_state():
     assert response.json()["detail"][0]["msg"] == "Value error, Invalid state"
 
 
-def test_invalid_fuel_quote_post():
+def test_invalid_fuel_quote_post(test_db):
     access_token = get_access_token()
     response = client.post(
         "/api/fuel_quote",
