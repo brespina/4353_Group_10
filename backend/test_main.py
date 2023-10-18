@@ -299,4 +299,4 @@ def test_invalid_fuel_quote_post():
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 422
-    assert response.json() == {"detail": "Value error, Invalid state"}
+    assert response.json() == {"detail": "Invalid total amount due"}
