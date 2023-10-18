@@ -1,7 +1,27 @@
+import pytest
 from fastapi.testclient import TestClient
-from main import app
+from main import app, get_db
+from xata import XataClient
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+SECRET_KEY: str = os.getenv("SECRET_KEY")
+ALGORITHM: list = os.getenv("ALGORITHM").split(',')
+EXPIRATION: float = float(os.getenv("EXPIRATION"))
+XATA_API_KEY: str = os.getenv("XATA_API_KEY")
+TEST_DB_URL: str = os.getenv("TEST_DB_URL")
+
+
+def override_get_db():
+    db = XataClient(db_url=TEST_DB_URL, api_key=XATA_API_KEY)
+    yield db
+    db.sql().query("DELETE FROM \"Users\", \"FuelData\"")
+
+app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)
+
 
 
 def get_access_token(username="testuser", password="testpassword"):

@@ -1,15 +1,16 @@
-import jwt
-import pytz
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
+
+import bcrypt
+import jwt
+import pytz
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, StringConstraints, field_validator
-from dotenv import load_dotenv
-import os
 from xata import XataClient
-import bcrypt
 
 load_dotenv()
 SECRET_KEY: str = os.getenv("SECRET_KEY")
@@ -20,7 +21,7 @@ XATA_BRANCH: str = os.getenv("XATA_BRANCH")
 DB_URL: str = os.getenv("DB_URL")
 
 # Loading DB
-db = XataClient(db_url=DB_URL, api_key=XATA_API_KEY, branch_name=XATA_BRANCH)
+#db = XataClient(db_url=DB_URL, api_key=XATA_API_KEY, branch_name=XATA_BRANCH)
 app = FastAPI()
 
 # Allow CORS
@@ -34,6 +35,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+states = [ 'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
+           'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
+           'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
+           'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
+           'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
+
 
 class User(BaseModel):
     username: str
@@ -44,13 +53,6 @@ class User(BaseModel):
     def username_alphanumeric(cls, v):
         assert v.isalnum(), "must be alphanumeric"
         return v
-
-
-states = [ 'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
-           'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
-           'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
-           'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
-           'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
 
 class UserDetails(BaseModel):
@@ -84,7 +86,10 @@ class FuelData(BaseModel):
     id: int
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
+def get_db():
+    db = XataClient(db_url=DB_URL, api_key=XATA_API_KEY)
+    yield db
+
 
 # Not implementing it yet
 def calculate_price() -> float: # type: ignore
@@ -115,7 +120,7 @@ def decode_token(token: str):
 
 
 @app.post("/api/register", description="Register a new user")
-async def register(user: User):
+async def register(user: User, db: XataClient = Depends(get_db)):
     # Check if the user exists
     response = db.sql().query(
         "SELECT * FROM \"Users\" WHERE username = $1", [user.username]
@@ -126,7 +131,7 @@ async def register(user: User):
 
     password = bcrypt.hashpw((user.password).encode(), bcrypt.gensalt())
     password = password.decode()
-    
+
     db.sql().query(
         "INSERT INTO \"Users\" (username, password) VALUES ($1, $2)",
         [user.username, password]
@@ -136,7 +141,7 @@ async def register(user: User):
 
 
 @app.post("/api/token", description="Get user token")
-async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()], db: XataClient = Depends(get_db)):
     response = db.sql().query(
         "SELECT username, password, require_details FROM \"Users\" WHERE username = $1 LIMIT 1",
         [data.username]
@@ -144,7 +149,7 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
     if len(response) != 1:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    
+
     stored_pass = response["records"][0]["password"]
 
     checkpass = bcrypt.checkpw((data.password).encode(), stored_pass.encode())
@@ -161,15 +166,15 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
 
 @app.post("/api/user/", description="Adds user details")
-async def add_user_details(details: UserDetails, token: str = Depends(oauth2_scheme)):
+async def add_user_details(details: UserDetails, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
     response = db.sql().query("SELECT require_details FROM \"Users\" WHERE username = $1", [user])
     if len(response) != 1:
         return HTTPException(status_code=400, detail="User not registered")
-        
+
     if response["records"][0]["require_details"] == False:
         raise HTTPException(status_code=400, detail="User details already registered")
-    
+
     db.sql().query(
         "UPDATE \"Users\" SET full_name = $1, address1 = $2, address2 = $3, city = $4, state = $5, zipcode = $6, require_details = FALSE WHERE username = $7",
         [details.full_name, details.address1, details.address2, details.city, details.state, details.zipcode, user]
@@ -180,30 +185,30 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
 
 @app.put("/api/user/", description="Updates user details")
 async def update_user_details(
-    details: UserDetails, token: str = Depends(oauth2_scheme)
+    details: UserDetails, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)
 ):
     user = decode_token(token)
     response = db.sql().query("SELECT require_details FROM \"Users\" WHERE username = $1", [user])
     if len(response) != 1:
         return HTTPException(status_code=400, detail="User not registered")
-    
+
     db.sql().query(
         "UPDATE \"Users\" SET full_name = $1, address1 = $2, address2 = $3, city = $4, state = $5, zipcode = $6 WHERE username = $7",
         [details.full_name, details.address1, details.address2, details.city, details.state, details.zipcode, user]
     )
 
-    return {"message": "User details updated successfully!"}
+    return {"message": "User details updated successfully!", "lmao": XATA_BRANCH}
 
 
 @app.get("/api/user/", description="Returns user details")
-async def get_user_details(token: str = Depends(oauth2_scheme)):
+async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
 
     response = db.sql().query("SELECT full_name, address1, address2, city, state, zipcode FROM \"Users\" WHERE username = $1", [user])
     record = response["records"][0]
 
     details = UserDetails(
-        full_name=record["full_name"], 
+        full_name=record["full_name"],
         address1=record["address1"],
         address2=record["address2"],
         city=record["city"],
@@ -215,7 +220,7 @@ async def get_user_details(token: str = Depends(oauth2_scheme)):
 
 
 @app.post("/api/fuel_quote/", description="Adds a fuel quote")
-async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
+async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
     response = db.sql().query(
         "SELECT full_name, address1, address2, city, state, zipcode, require_details FROM \"Users\" WHERE username = $1", [user]
@@ -223,11 +228,11 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
 
     if response["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
-    
+
 
     record = response["records"][0]
     details = UserDetails(
-        full_name=record["full_name"], 
+        full_name=record["full_name"],
         address1=record["address1"],
         address2=record["address2"],
         city=record["city"],
@@ -249,7 +254,7 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
     if total != data.total_amount_due:
         print(data.gallons_requested * data.suggested_price)
         raise HTTPException(status_code=422, detail="Invalid total amount due")
-    
+
     db.sql().query(
         "INSERT INTO \"FuelData\" (username, gallons_requested, delivery_addr, delivery_date, ppg, total_cost, date_requested) VALUES ($1, $2, $3, $4, $5, $6, $7)",
         [user, data.gallons_requested, data.delivery_address, data.delivery_date, data.suggested_price, data.total_amount_due, data.date_requested]
@@ -259,18 +264,18 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme)):
 
 
 @app.get("/api/fuel_quote/", description="Returns a list of fuel quotes")
-async def get_fuel_quote(token: str = Depends(oauth2_scheme)):
+async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
     details = db.sql().query("SELECT require_details FROM \"Users\" WHERE username = $1", [user])
     if details["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
-    
+
     response = db.sql().query("SELECT gallons_requested, delivery_addr, delivery_date, ppg, total_cost, date_requested FROM \"FuelData\" WHERE username = $1", [user])
 
     records = response["records"]
     if len(records) == 0:
         raise HTTPException(status_code=501, detail="No fuel quotes registered")
-    
+
     data = []
     num = 0
     for record in response["records"]:
