@@ -11,7 +11,7 @@ app = APIRouter()
 @app.post("/api/register", description="Register a new user")
 async def register(user: User, db: XataClient = Depends(get_db)):
     response = db.sql().query(
-        'SELECT * FROM "Users" WHERE username = $1', [user.username]
+        'SELECT username FROM "Users" WHERE username = $1', [user.username]
     )
 
     if len(response) == 1:

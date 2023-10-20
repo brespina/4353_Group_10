@@ -17,8 +17,18 @@ DB_URL: str = os.getenv("DB_URL")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
+
+global_db = None
+
+# Use 1 instance to reduce overhead
+def intialize_db():
+    global global_db
+    if global_db is None:
+        global_db = XataClient(api_key=XATA_API_KEY, branch_name=XATA_BRANCH, db_url=DB_URL)
+    return global_db
+
 def get_db():
-    db = XataClient(db_url=DB_URL, api_key=XATA_API_KEY, branch_name=XATA_BRANCH)
+    db = intialize_db()
     yield db
 
 # Not implementing it yet

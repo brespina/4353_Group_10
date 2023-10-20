@@ -13,6 +13,9 @@ function ProtectedRoute({ children, validPaths }: any) {
 
   // Go to login if no token
   if (!token) {
+    if (location.pathname === "/" || location.pathname === "/register") {
+      return children;
+    }
     return <Navigate to="/" />;
   }
   // If logged in but the path isn't valid, redirect to /home
@@ -33,8 +36,22 @@ function App() {
       )}
       <div className="container">
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute validPaths={loggedInValidPaths}>
+                <Login />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <ProtectedRoute validPaths={loggedInValidPaths}>
+                <Register />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
             element={
