@@ -11,29 +11,28 @@ load_dotenv()
 SECRET_KEY: str = os.getenv("SECRET_KEY")
 ALGORITHM: list = os.getenv("ALGORITHM").split(",")
 EXPIRATION: float = float(os.getenv("EXPIRATION"))
-XATA_API_KEY: str = os.getenv("XATA_API_KEY")
-XATA_BRANCH: str = os.getenv("XATA_BRANCH")
-DB_URL: str = os.getenv("DB_URL")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
-
-
 global_db = None
+
 
 # Use 1 instance to reduce overhead
 def intialize_db():
     global global_db
     if global_db is None:
-        global_db = XataClient(api_key=XATA_API_KEY, branch_name=XATA_BRANCH, db_url=DB_URL)
+        global_db = XataClient(branch_name="main")
     return global_db
+
 
 def get_db():
     db = intialize_db()
     yield db
 
+
 # Not implementing it yet
 def calculate_price() -> float:  # type: ignore
     pass
+
 
 def format_datetime(dt: str) -> str:
     dt_obj = datetime.fromisoformat(dt)
@@ -56,6 +55,6 @@ def decode_token(token: str):
         return username
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
 
 
