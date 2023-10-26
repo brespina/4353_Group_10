@@ -9,8 +9,9 @@ from app.utils import get_db
 load_dotenv(find_dotenv())
 
 XATA_API_KEY: str = os.getenv("XATA_API_KEY")
-TEST_DB_URL: str = os.getenv("TEST_DB_URL")
+DB_URL: str = os.getenv("DB_URL")
 TEST_BRANCH: str = os.getenv("TEST_BRANCH")
+TEST_DB_URL: str = os.getenv("TEST_DB_URL")
 
 db = XataClient(db_url=TEST_DB_URL, api_key=XATA_API_KEY, branch_name=TEST_BRANCH)
 
@@ -24,8 +25,9 @@ def override_get_db():
 @pytest.fixture(scope="function", autouse=True)
 def cleanup():
     yield
-    db.sql().query("DELETE FROM \"Users\"")
-    db.sql().query("DELETE FROM \"FuelData\"")
+    db.sql().query('DELETE FROM "UserCredentials"')
+    db.sql().query('DELETE FROM "ClientInformation"')
+    db.sql().query('DELETE FROM "FuelData"')
 
 @pytest.fixture(scope="module", autouse=True)
 def client():

@@ -10,13 +10,22 @@ app = APIRouter()
 @app.post("/api/fuel_quote/", description="Adds a fuel quote")
 async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
-    response = db.sql().query(
-        'SELECT full_name, address1, address2, city, state, zipcode, require_details FROM "Users" WHERE username = $1',
-        [user],
+
+    response = db.sql().query (
+        'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
 
+    # Will prob never execute
+    if len(response) != 1:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    
     if response["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
+    
+    response = db.sql().query(
+        'SELECT full_name, address1, address2, city, state, zipcode FROM "ClientInformation" WHERE id = $1',
+        [user],
+    )
 
     record = response["records"][0]
     details = UserDetails(
@@ -52,7 +61,7 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
         raise HTTPException(status_code=422, detail="Invalid total amount due")
 
     db.sql().query(
-        'INSERT INTO "FuelData" (username, gallons_requested, delivery_addr, delivery_date, ppg, total_cost, date_requested) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        'INSERT INTO "FuelData" (username, gallons_requested, delivery_address, delivery_date, suggested_price, total_amount_due, date_requested) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [
             user,
             data.gallons_requested,
@@ -71,13 +80,17 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
 async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
     details = db.sql().query(
-        'SELECT require_details FROM "Users" WHERE username = $1', [user]
+        'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
+    # Prob never execute
+    if len(details) != 1:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
     if details["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
 
     response = db.sql().query(
-        'SELECT gallons_requested, delivery_addr, delivery_date, ppg, total_cost, date_requested FROM "FuelData" WHERE username = $1',
+        'SELECT gallons_requested, delivery_address, delivery_date, suggested_price, total_amount_due, date_requested FROM "FuelData" WHERE username = $1',
         [user],
     )
 
@@ -90,10 +103,10 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
         data.append(
             FuelData(
                 gallons_requested=record["gallons_requested"],
-                delivery_address=record["delivery_addr"],
+                delivery_address=record["delivery_address"],
                 delivery_date=format_datetime(record["delivery_date"]),
-                suggested_price=record["ppg"],
-                total_amount_due=record["total_cost"],
+                suggested_price=record["suggested_price"],
+                total_amount_due=record["total_amount_due"],
                 date_requested=format_datetime(record["date_requested"]),
                 id=num,
             )

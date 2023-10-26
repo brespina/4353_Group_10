@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from xata import XataClient
+from .models import UserCreds_Schema, ClientInfo_Schema, FuelQuote_Schema
 
 load_dotenv()
 SECRET_KEY: str = os.getenv("SECRET_KEY")
@@ -58,4 +59,17 @@ def decode_token(token: str):
         raise HTTPException(status_code=401, detail="Invalid token")
     
 
+def buildDB():
+    db = intialize_db()
+    
+    # Create the UserCredentials table
+    db.table().create("UserCredentials")
+    db.table().set_schema("UserCredentials", UserCreds_Schema)
 
+    # Create the ClientInformation table
+    db.table().create("ClientInformation")
+    db.table().set_schema("ClientInformation", ClientInfo_Schema)
+
+    # Create the FuelData table
+    db.table().create("FuelData")
+    db.table().set_schema("FuelData", FuelQuote_Schema)

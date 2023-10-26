@@ -9,7 +9,7 @@ states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
            'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
 class User(BaseModel):
-    username: str
+    username: Annotated[str, StringConstraints(min_length=4, max_length=255)]
     # probably need to hash this or something
     password: Annotated[str, StringConstraints(min_length=8)]
 
@@ -48,3 +48,34 @@ class FuelData(BaseModel):
     date_requested: str
     id: int
 
+UserCreds_Schema = {
+    "columns": [
+        # Xata autocreates ID and guarantee uniqueness
+        {"name": "password", "type": "string"},
+        {"name": "require_details", "type": "bool", "defaultValue": "true"}
+    ]
+}
+
+ClientInfo_Schema = {
+    "columns": [
+        # Xata autocreates ID and guarantee uniqueness
+        {"name": "full_name", "type": "string"},
+        {"name": "address1", "type": "string"},
+        {"name": "address2", "type": "string"},
+        {"name": "city", "type": "string"},
+        {"name": "state", "type": "string"},
+        {"name": "zipcode", "type": "string"}
+    ]
+}
+
+FuelQuote_Schema = {
+    "columns": [
+        {"name": "username", "type": "string"},
+        {"name": "gallons_requested", "type": "int"},
+        {"name": "delivery_address", "type": "text"},
+        {"name": "delivery_date", "type": "datetime"},
+        {"name": "suggested_price", "type": "float"},
+        {"name": "total_amount_due", "type": "float"},
+        {"name": "date_requested", "type": "datetime"}
+    ]
+}

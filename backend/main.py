@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import fuel_enpoint, user_endpoint
+from app.utils import buildDB
 
+buildDB()
 
 app = FastAPI()
 
