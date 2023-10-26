@@ -8,6 +8,7 @@ interface History {
   delivery_date: string;
   delivery_address: string;
   suggested_price: number;
+  total_amount_due: number;
 }
 
 const FuelHistory = () => {
@@ -41,15 +42,6 @@ const FuelHistory = () => {
     }
   };
 
-  function multiply({ gallons_requested, suggested_price }: History): number {
-    return gallons_requested * suggested_price;
-  }
-
-  const totalCost = fuelHistoryData.reduce(
-    (total, history) => total + multiply(history),
-    0
-  );
-
   const greyedOutStyle: React.CSSProperties = {
     backgroundColor: "#f2f2f2", // Grey background color
     color: "#000", // Grey text color
@@ -58,8 +50,6 @@ const FuelHistory = () => {
 
   return (
     <>
-      {console.log("logging it lmao")}
-      {console.log(fuelHistoryDataExists)}
       {!fuelHistoryDataExists ? (
         <div>You do not have any fuel history</div>
       ) : (
@@ -116,7 +106,7 @@ const FuelHistory = () => {
                   <input
                     style={greyedOutStyle}
                     type="text"
-                    value={totalCost}
+                    value={history.total_amount_due}
                     readOnly
                   />
                 </div>

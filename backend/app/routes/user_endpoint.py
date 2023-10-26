@@ -82,14 +82,15 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
             user,
         ],
     )
-    # if response.status_code != 200:
-    #     raise HTTPException(status_code=400, detail="Something went wrong error code" + str(response.status_code))
+
+    if not response.is_success():
+        raise HTTPException(status_code=400, detail="Something went wrong")
 
     response = db.sql().query(
         'UPDATE "UserCredentials" SET require_details = false WHERE id = $1', [user]
     )
 
-    if response.status_code != 200:
+    if not response.is_success():
         raise HTTPException(status_code=400, detail="Something went wrong")
 
     return {"message": "User details registered successfully!"}

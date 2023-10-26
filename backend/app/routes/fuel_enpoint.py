@@ -90,7 +90,7 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
         raise HTTPException(status_code=400, detail="Add user details first")
 
     response = db.sql().query(
-        'SELECT gallons_requested, delivery_address, delivery_date, suggested_price, total_amount_due, date_requested FROM "FuelData" WHERE username = $1',
+        'SELECT gallons_requested, delivery_address, delivery_date, suggested_price, total_amount_due, date_requested FROM "FuelData" WHERE username = $1 ORDER BY date_requested DESC',
         [user],
     )
 
@@ -100,11 +100,13 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
     data = []
     num = 0
     for record in response["records"]:
+        delivery = format_datetime(record["delivery_date"])
+        delivery = delivery.split(" ")[0]
         data.append(
             FuelData(
                 gallons_requested=record["gallons_requested"],
                 delivery_address=record["delivery_address"],
-                delivery_date=format_datetime(record["delivery_date"]),
+                delivery_date=delivery,
                 suggested_price=record["suggested_price"],
                 total_amount_due=record["total_amount_due"],
                 date_requested=format_datetime(record["date_requested"]),
