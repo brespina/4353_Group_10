@@ -24,13 +24,13 @@ fuel_details = {
     "id": 1,
 }
 
-def register(username = "testuser", password = "testpass"):
+def register(username = "testuser", password = "testpass,1"):
     return client.post(
         "/api/register", json={"username": username, "password": password}
     )
 
 
-def login(username = "testuser", password = "testpass"):
+def login(username = "testuser", password = "testpass,1"):
     return client.post("/api/token", data={"username": username, "password": password})
 
 

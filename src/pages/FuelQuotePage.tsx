@@ -1,7 +1,5 @@
-import React from "react";
 import FuelQuoteForm from "../components/FuelQuoteForm";
-import ProfileForm from "../components/ProfileForm";
-import Profile from "./Profile";
+
 
 // const Profile: React.FC = (ProfileForm.FormData.deliveryAddr) => {
 

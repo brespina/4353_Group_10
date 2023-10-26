@@ -1,4 +1,4 @@
-import React, { FormEvent, useState, useRef } from "react";
+import React, { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 import "../styles/fancydiv.css";
@@ -6,46 +6,53 @@ import ProfileForm from "../components/ProfileForm";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Company from "../components/Company";
 import api from "../components/api";
+import { useFormik } from "formik";
+import { loginSchema } from "../components/validationSchema";
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+
   const [shouldShowProfileForm, setShouldShowProfileForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [displayBox, setDisplayBox] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    var formdata = new FormData();
-    formdata.append('username', username);
-    formdata.append('password', password);
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      var formdata = new FormData();
+      formdata.append('username', values.username);
+      formdata.append('password', values.password);
 
-    try {
-      const response = await api.post('/api/token', formdata, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-      });      
-      const { access_token, require_details } = response.data;
-
-      localStorage.setItem('token', access_token);
-
-      if (require_details) {
-        setShouldShowProfileForm(true);
-      } else {
-        navigate('/home');
+      try {
+        const response = await api.post('/api/token', formdata, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+        });      
+        const { access_token, require_details } = response.data;
+  
+        localStorage.setItem('token', access_token);
+  
+        if (require_details) {
+          setShouldShowProfileForm(true);
+        } else {
+          navigate('/home');
+        }
+        return true; // Login successful
+  
+      } catch (error) {
+        setDisplayBox(true);
+        setTimeout(() => {
+          setDisplayBox(false);
+        }, 5000);
+        return false; // Login failed
       }
-      return true; // Login successful
-
-    } catch (error) {
-      setDisplayBox(true);
-      setTimeout(() => {
-        setDisplayBox(false);
-      }, 5000);
-      return false; // Login failed
     }
-  };
+  });
 
  
   return (
@@ -57,7 +64,7 @@ const Login: React.FC = () => {
         ) : (
           <>
             <h2>Sign In</h2>
-            <form className="auth-form" onSubmit={handleSubmit}>
+            <form className="auth-form" onSubmit={formik.handleSubmit}>
               <p>Access Singh City Fuel using your username and password.</p>
               <label htmlFor="username">Username</label>
               <input
@@ -65,10 +72,14 @@ const Login: React.FC = () => {
                 id="username"
                 placeholder="Enter your username"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={formik.values.username}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 autoComplete="off"
               />
+              {formik.touched.username && formik.errors.username ? (
+                <div className="error">{formik.errors.username}</div>
+              ) : null}
               <div className="password-input">
                 <label htmlFor="password">Password</label>
                 <input
@@ -76,10 +87,14 @@ const Login: React.FC = () => {
                   id="password"
                   placeholder="Enter your password"
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   autoComplete="off"
                 />
+                {formik.touched.password && formik.errors.password ? (
+                  <div className="error">{formik.errors.password}</div>
+                ) : null}
                 <span
                   className="password-icon-container"
                   onClick={() => setShowPassword(!showPassword)}

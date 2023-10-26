@@ -1,6 +1,7 @@
 
 from pydantic import BaseModel, StringConstraints, field_validator
 from typing import Annotated
+import re
 
 states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
            'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
@@ -9,14 +10,20 @@ states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
            'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
 class User(BaseModel):
-    username: Annotated[str, StringConstraints(min_length=4, max_length=255)]
+    username: Annotated[str, StringConstraints(min_length=4, max_length=20)]
     # probably need to hash this or something
-    password: Annotated[str, StringConstraints(min_length=8)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=50)]
 
     @field_validator("username")
     def username_alphanumeric(cls, v):
-        assert v.isalnum(), "must be alphanumeric"
+        assert re.match(r'^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$', v), "Username must contain only letters, numbers, and underscores"
         return v
+    
+    @field_validator("password")
+    def validate_password(cls, v):
+        assert re.search(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-Za-z\d@$!%*?&#,]{8,}$', v), "Password must contain at least 1 special character and 1 number"
+        return v
+        
 
 class UserDetails(BaseModel):
     full_name: Annotated[str, StringConstraints(min_length=1, max_length=50)]
@@ -34,9 +41,9 @@ class UserDetails(BaseModel):
 
     @field_validator("full_name")
     def validate_full_name(cls, v):
-        if " " not in v:
-            raise ValueError("Full name must contain space")
-        return v.title()
+        assert re.match(r'^[A-Za-z]* [A-Za-z ]*$', v), "Please enter a valid name"
+        return v
+    
     
 
 class FuelData(BaseModel):
@@ -47,6 +54,17 @@ class FuelData(BaseModel):
     total_amount_due: float
     date_requested: str
     id: int
+
+    @field_validator("gallons_requested")
+    def validate_gallons_requested(cls, v):
+        assert v > 0, "Gallons requested must be greater than 0"
+        return v
+    
+    @field_validator("delivery_address")
+    def validate_delivery_address(cls, v):
+        assert len(v) > 0, "Delivery address cannot be empty"
+        return v
+    
 
 UserCreds_Schema = {
     "columns": [

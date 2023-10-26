@@ -7,8 +7,8 @@ client = TestClient(app)
 
 
 def test_add_new_fuel_quote():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     user_details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -32,8 +32,8 @@ def test_add_new_fuel_quote():
 
 
 def test_get_fuel_quotes():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     user_details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -59,32 +59,32 @@ def test_get_fuel_quotes():
 
 
 def test_get_fuel_quote_wo_user_details():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     response = get_fuelquote(token)
     assert response.status_code == 400
     assert response.json() == {"detail": "Add user details first"}
 
 
 def test_add_fuel_quote_wo_user_details():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     response = add_fuelquote(token)
     assert response.status_code == 400
     assert response.json() == {"detail": "Add user details first"}
 
 
 def test_get_quote_wo_fuel_history():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     add_details(token)
     response = get_fuelquote(token)
     assert response.status_code == 501
     assert response.json() == {"detail": "No fuel quotes registered"}
 
 def test_invalid_fuel_quote_post():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     add_details(token)
     fuel_details = {
         "gallons_requested": 10000,

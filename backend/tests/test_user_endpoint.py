@@ -2,8 +2,8 @@ import pytest
 from .helper import *
 
 def test_add_user_details():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -16,8 +16,8 @@ def test_add_user_details():
     assert response.json() == {"message": "User details registered successfully!"}
 
 def test_add_user_details_existing_user():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -31,8 +31,8 @@ def test_add_user_details_existing_user():
     assert response.json() == {"detail": "User details already registered"}
 
 def test_get_user_details():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -53,15 +53,15 @@ def test_get_user_details_not_registered():
     assert response.json() == {"detail": "Invalid token"}
 
 def test_get_user_details_wo_user_details():
-    register("test", "testpass")
-    token = login("test", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     response = get_details(token)
     assert response.status_code == 400
     assert response.json() == {"detail": "User details not registered"}
 
 def test_change_profile():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -82,8 +82,8 @@ def test_change_profile():
     assert response.json() == {"message": "User details updated successfully!"}
 
 def test_change_profile_wo_user_details():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John Doe",
         "address1": "123 Main St",
@@ -97,8 +97,8 @@ def test_change_profile_wo_user_details():
     assert response.json() == {"detail": "User details not registered"}
 
 def test_add_user_details_invalid_full_name():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John",
         "address1": "123 Main St",
@@ -110,12 +110,12 @@ def test_add_user_details_invalid_full_name():
     assert response.status_code == 422
     assert (
         response.json()["detail"][0]["msg"]
-        == "Value error, Full name must contain space"
+        == "Assertion failed, Please enter a valid name"
     )
 
 def test_add_user_details_invalid_state():
-    register("testuser", "testpass")
-    token = login("testuser", "testpass").json()["access_token"]
+    register()
+    token = login().json()["access_token"]
     details = {
         "full_name": "John Doe",
         "address1": "123 Main St",

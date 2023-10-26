@@ -1,25 +1,10 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { AxiosError, isAxiosError } from "axios";
 import api from "../components/api";
-
-interface ProfileData {
-  full_name: string;
-  address1: string;
-  address2: string;
-  city: string;
-  state: string;
-  zipcode: string;
-}
+import { useFormik } from "formik";
+import { profileSchema } from "../components/validationSchema";
 
 const Profile = () => {
-  const [formData, setFormData] = useState<ProfileData>({
-    full_name: "",
-    address1: "",
-    address2: "",
-    city: "",
-    state: "",
-    zipcode: "",
-  });
   const [isEditable, setIsEditable] = useState(false);
   const [displayBox, setDisplayBox] = useState(false);
   const [displayMessage, setDisplayMessage] = useState("");
@@ -40,7 +25,12 @@ const Profile = () => {
           },
         });
         if (response.status === 200) {
-          setFormData(response.data);
+          formik.setFieldValue("full_name", response.data.full_name);
+          formik.setFieldValue("address1", response.data.address1);
+          formik.setFieldValue("address2", response.data.address2);
+          formik.setFieldValue("city", response.data.city);
+          formik.setFieldValue("state", response.data.state);
+          formik.setFieldValue("zipcode", response.data.zipcode);
         }
       } catch (error) {
         console.log(error);
@@ -49,76 +39,80 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
   const handleEdit = () => {
     setIsEditable(true);
   };
 
-  const handleSave = async (e: FormEvent) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("token");
-      const response = await api.put("/api/user/", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 200) {
-        setDisplayMessage("Profile saved successfully!");
-        setDisplayBox(true);
-        setIsEditable(false);
-        setTimeout(() => {
-          setDisplayBox(false);
-        }, 1500);
-      }
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const err = error as AxiosError;
-        if (err.response?.status === 422) {
-          //const errorMessage = error.response?.data.detail[0].msg.split(", ")[0];
-          const errorMessage = error.response?.data.detail[0].msg;
-          setDisplayMessage(errorMessage);
+  const formik = useFormik({
+    initialValues: {
+      full_name: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: "",
+      zipcode: "",
+    },
+    validationSchema: profileSchema,
+    onSubmit: async (values) => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await api.put("/api/user/", values, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 200) {
+          setDisplayMessage("Profile saved successfully!");
+          setDisplayBox(true);
+          setIsEditable(false);
+          setTimeout(() => {
+            setDisplayBox(false);
+          }, 1500);
+        }
+      } catch (error) {
+        if (isAxiosError(error)) {
+          const err = error as AxiosError;
+          if (err.response?.status === 422) {
+            //const errorMessage = error.response?.data.detail[0].msg.split(", ")[0];
+            const errorMessage = error.response?.data.detail[0].msg;
+            setDisplayMessage(errorMessage);
+            setDisplayBox(true);
+            setTimeout(() => {
+              setDisplayBox(false);
+            }, 2000);
+          }
+        } else {
+          setDisplayMessage("Something went wrong. Please try again.");
           setDisplayBox(true);
           setTimeout(() => {
             setDisplayBox(false);
           }, 2000);
         }
-      } else {
-        setDisplayMessage("Something went wrong. Please try again.");
-        setDisplayBox(true);
-        setTimeout(() => {
-          setDisplayBox(false);
-        }, 2000);
       }
-    }
-  };
+    },
+  });
 
   return (
     <div>
       <h2>Edit your profile</h2>
-      <form onSubmit={handleSave}>
+      <form onSubmit={formik.handleSubmit}>
         <div>
           <label htmlFor="full_name">Full Name</label>
           <input
             type="text"
             id="full_name"
             name="full_name"
-            value={formData.full_name}
-            onChange={handleChange}
+            value={formik.values.full_name}
+            onChange={formik.handleChange}
             disabled={!isEditable}
             minLength={1}
             maxLength={50}
             style={isEditable ? undefined : greyedOutStyle}
+            onBlur={formik.handleBlur}
           />
+          {formik.touched.full_name && formik.errors.full_name ? (
+            <div className="error">{formik.errors.full_name}</div>
+          ) : null}{" "}
         </div>
         <div>
           <label htmlFor="address1">Address 1</label>
@@ -126,13 +120,17 @@ const Profile = () => {
             type="text"
             id="address1"
             name="address1"
-            value={formData.address1}
-            onChange={handleChange}
+            value={formik.values.address1}
+            onChange={formik.handleChange}
             disabled={!isEditable}
             minLength={1}
             maxLength={100}
             style={isEditable ? undefined : greyedOutStyle}
+            onBlur={formik.handleBlur}
           />
+          {formik.touched.address1 && formik.errors.address1 ? (
+            <div className="error">{formik.errors.address1}</div>
+          ) : null}
         </div>
         <div>
           <label htmlFor="address2">Address 2</label>
@@ -140,12 +138,16 @@ const Profile = () => {
             type="text"
             id="address2"
             name="address2"
-            value={formData.address2}
-            onChange={handleChange}
+            value={formik.values.address2}
+            onChange={formik.handleChange}
             disabled={!isEditable}
             maxLength={100}
             style={isEditable ? undefined : greyedOutStyle}
+            onBlur={formik.handleBlur}
           />
+          {formik.touched.address2 && formik.errors.address2 ? (
+            <div className="error">{formik.errors.address2}</div>
+          ) : null}{" "}
         </div>
         <div>
           <label htmlFor="city">City</label>
@@ -153,13 +155,17 @@ const Profile = () => {
             type="text"
             id="city"
             name="city"
-            value={formData.city}
-            onChange={handleChange}
+            value={formik.values.city}
+            onChange={formik.handleChange}
             disabled={!isEditable}
             minLength={1}
             maxLength={100}
             style={isEditable ? undefined : greyedOutStyle}
+            onBlur={formik.handleBlur}
           />
+          {formik.touched.city && formik.errors.city ? (
+            <div className="error">{formik.errors.city}</div>
+          ) : null}{" "}
         </div>
         <div>
           <label htmlFor="state">State</label>
@@ -167,8 +173,8 @@ const Profile = () => {
             id="state"
             name="state"
             style={isEditable ? undefined : greyedOutStyle}
-            value={formData.state}
-            onChange={handleChange}
+            value={formik.values.state}
+            onChange={formik.handleChange}
             required
             disabled={!isEditable}
           >
@@ -231,13 +237,17 @@ const Profile = () => {
             type="text"
             id="zipcode"
             name="zipcode"
-            value={formData.zipcode}
-            onChange={handleChange}
+            value={formik.values.zipcode}
+            onChange={formik.handleChange}
             disabled={!isEditable}
             minLength={5}
             maxLength={9}
             style={isEditable ? undefined : greyedOutStyle}
+            onBlur={formik.handleBlur}
           />
+          {formik.touched.zipcode && formik.errors.zipcode ? (
+            <div className="error">{formik.errors.zipcode}</div>
+          ) : null}{" "}
         </div>
         {!isEditable && (
           <button type="button" onClick={handleEdit}>
