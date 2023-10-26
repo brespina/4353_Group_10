@@ -24,14 +24,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 global_db = None
 
 # Use 1 instance to reduce overhead
-def intialize_db():
+def initialize_db():
     global global_db
     if global_db is None:
         global_db = XataClient(api_key=XATA_API_KEY, branch_name=XATA_BRANCH, db_url=DB_URL)
     return global_db
 
 def get_db():
-    db = intialize_db()
+    db = initialize_db()
     yield db
 
 # Not implementing it yet
@@ -62,7 +62,7 @@ def decode_token(token: str):
 
 
 def buildDB():
-    db = intialize_db()
+    db = initialize_db()
 
     # Create the UserCredentials table
     db.table().create("UserCredentials")
