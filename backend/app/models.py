@@ -67,7 +67,7 @@ class FuelData(BaseModel):
     @field_validator("delivery_address")
     def validate_delivery_address(cls, v):
         if not len(v) > 0:
-            raise ValueError("Gallons requested must be greater than 0")
+            raise ValueError("Delivery address cannot be empty")
         return v
 
 
