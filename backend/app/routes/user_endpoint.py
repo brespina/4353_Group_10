@@ -69,7 +69,7 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
     if len(response) != 1:
         raise HTTPException(status_code=400, detail="User not registered")
 
-    if response["records"][0]["require_details"] == False:
+    if response["records"][0]["require_details"] is False:
         raise HTTPException(status_code=400, detail="User details already registered")
 
     response = db.sql().query(
@@ -111,7 +111,7 @@ async def update_user_details(
     if len(response) != 1:
         raise HTTPException(status_code=400, detail="User not registered")
 
-    if response["records"][0]["require_details"] == True:
+    if response["records"][0]["require_details"] is True:
         raise HTTPException(status_code=400, detail="User details not registered")
 
     db.sql().query(
@@ -141,7 +141,7 @@ async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient =
     if len(response) != 1:
         raise HTTPException(status_code=400, detail="Something went wrong") # Prob will never execute
 
-    if response["records"][0]["require_details"] == True:
+    if response["records"][0]["require_details"] is True:
         raise HTTPException(status_code=400, detail="User details not registered")
 
     response = db.sql().query(

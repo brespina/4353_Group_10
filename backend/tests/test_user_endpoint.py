@@ -117,7 +117,7 @@ def test_add_user_details_invalid_full_name():
     assert response.status_code == 422
     assert (
         response.json()["detail"][0]["msg"]
-        == "Assertion failed, Please enter a valid name"
+        == "Value error, Please enter a valid name"
     )
 
 

@@ -1,4 +1,3 @@
-
 import re
 from typing import Annotated
 
@@ -16,12 +15,14 @@ class User(BaseModel):
 
     @field_validator("username")
     def username_alphanumeric(cls, v):
-        assert re.match(r'^[A-z0-9]+(?:[_][A-z0-9]+)*$', v), "Username must contain only letters, numbers, and underscores"
+        if not re.match(r'^[A-z0-9]+(?:[_][A-z0-9]+)*$', v):
+            raise ValueError("Username must contain only letters, numbers, and underscores")
         return v
 
     @field_validator("password")
     def validate_password(cls, v):
-        assert re.search(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-z\d@$!%*?&#,]{8,}$', v), "Password must contain at least 1 special character and 1 number"
+        if not re.match(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-z\d@$!%*?&#,]{8,}$', v):
+            raise ValueError("Password must contain at least 1 special character and 1 number")
         return v
 
 
@@ -42,7 +43,8 @@ class UserDetails(BaseModel):
     @field_validator("full_name")
     def validate_full_name(cls, v):
         # A full name consists of a first name and last name separated by a space
-        assert re.match(r'^[A-z]+\s[A-z]+$', v), "Please enter a valid name"
+        if not re.match(r'^[A-z]+\s[A-z]+$', v):
+            raise ValueError("Please enter a valid name")
         return v
 
 
@@ -58,12 +60,14 @@ class FuelData(BaseModel):
 
     @field_validator("gallons_requested")
     def validate_gallons_requested(cls, v):
-        assert v > 0, "Gallons requested must be greater than 0"
+        if not v > 0:
+            raise ValueError("Gallons requested must be greater than 0")
         return v
 
     @field_validator("delivery_address")
     def validate_delivery_address(cls, v):
-        assert len(v) > 0, "Delivery address cannot be empty"
+        if not len(v) > 0:
+            raise ValueError("Gallons requested must be greater than 0")
         return v
 
 

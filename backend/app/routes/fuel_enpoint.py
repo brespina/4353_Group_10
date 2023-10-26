@@ -21,7 +21,7 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
     if len(response) != 1:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    if response["records"][0]["require_details"] == True:
+    if response["records"][0]["require_details"] is True:
         raise HTTPException(status_code=400, detail="Add user details first")
 
     response = db.sql().query(
@@ -88,7 +88,7 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
     if len(details) != 1:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    if details["records"][0]["require_details"] == True:
+    if details["records"][0]["require_details"] is True:
         raise HTTPException(status_code=400, detail="Add user details first")
 
     response = db.sql().query(
