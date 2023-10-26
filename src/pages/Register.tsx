@@ -14,7 +14,6 @@ const Register: React.FC = () => {
   const [displayBox, setDisplayBox] = useState(false);
   const [displayMessage, setDisplayMessage] = useState("");
 
-
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -50,9 +49,8 @@ const Register: React.FC = () => {
           setDisplayBox(false);
         }, 5000);
       }
-    }
+    },
   });
-
 
   return (
     <div className="auth-page fancy-div">

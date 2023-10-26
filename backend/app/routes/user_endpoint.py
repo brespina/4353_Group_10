@@ -1,8 +1,10 @@
-import bcrypt
-from fastapi import Depends, HTTPException, APIRouter
 from typing import Annotated
+
+import bcrypt
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from xata import XataClient
+
 from ..models import User, UserDetails
 from ..utils import create_token, decode_token, get_db, oauth2_scheme
 
@@ -17,7 +19,7 @@ async def register(user: User, db: XataClient = Depends(get_db)):
 
     if len(response) == 1:
         raise HTTPException(status_code=409, detail="Username already registered")
-    
+
     password = bcrypt.hashpw((user.password).encode(), bcrypt.gensalt())
     password = password.decode()
 
@@ -62,7 +64,7 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
     response = db.sql().query(
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
-    
+
     # Covers DB errors and user not registered
     if len(response) != 1:
         raise HTTPException(status_code=400, detail="User not registered")
@@ -104,7 +106,7 @@ async def update_user_details(
     response = db.sql().query(
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
-    
+
     # Covers DB errors and user not registered
     if len(response) != 1:
         raise HTTPException(status_code=400, detail="User not registered")
@@ -138,7 +140,7 @@ async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient =
 
     if len(response) != 1:
         raise HTTPException(status_code=400, detail="Something went wrong") # Prob will never execute
-    
+
     if response["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="User details not registered")
 

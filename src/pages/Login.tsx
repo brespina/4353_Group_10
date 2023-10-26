@@ -10,7 +10,6 @@ import { useFormik } from "formik";
 import { loginSchema } from "../components/validationSchema";
 
 const Login: React.FC = () => {
-
   const [shouldShowProfileForm, setShouldShowProfileForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -24,26 +23,25 @@ const Login: React.FC = () => {
     validationSchema: loginSchema,
     onSubmit: async (values) => {
       var formdata = new FormData();
-      formdata.append('username', values.username);
-      formdata.append('password', values.password);
+      formdata.append("username", values.username);
+      formdata.append("password", values.password);
 
       try {
-        const response = await api.post('/api/token', formdata, {
+        const response = await api.post("/api/token", formdata, {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            "Content-Type": "application/x-www-form-urlencoded",
           },
-        });      
+        });
         const { access_token, require_details } = response.data;
-  
-        localStorage.setItem('token', access_token);
-  
+
+        localStorage.setItem("token", access_token);
+
         if (require_details) {
           setShouldShowProfileForm(true);
         } else {
-          navigate('/home');
+          navigate("/home");
         }
         return true; // Login successful
-  
       } catch (error) {
         setDisplayBox(true);
         setTimeout(() => {
@@ -51,10 +49,9 @@ const Login: React.FC = () => {
         }, 5000);
         return false; // Login failed
       }
-    }
+    },
   });
 
- 
   return (
     <div className="auth-page fancy-div">
       <Company />
@@ -112,13 +109,12 @@ const Login: React.FC = () => {
               </p>
             </form>
             {displayBox && (
-          <div className="error-box" onClick={() => setDisplayBox(false)}>
-            Invalid credentials provided!
-          </div>
-        )}
+              <div className="error-box" onClick={() => setDisplayBox(false)}>
+                Invalid credentials provided!
+              </div>
+            )}
           </>
         )}
-
       </div>
     </div>
   );

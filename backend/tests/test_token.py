@@ -1,9 +1,4 @@
-import pytest
 from .helper import *
-from main import app
-from fastapi.testclient import TestClient
-
-client = TestClient(app)
 
 
 def test_register_new_user():

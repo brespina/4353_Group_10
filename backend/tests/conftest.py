@@ -1,10 +1,11 @@
-import pytest
 import os
-from dotenv import load_dotenv, find_dotenv
-from xata import XataClient
+
+import pytest
+from app.utils import get_db
+from dotenv import find_dotenv, load_dotenv
 from fastapi.testclient import TestClient
 from main import app
-from app.utils import get_db
+from xata import XataClient
 
 load_dotenv(find_dotenv())
 
@@ -15,12 +16,15 @@ TEST_DB_URL: str = os.getenv("TEST_DB_URL")
 
 db = XataClient(db_url=TEST_DB_URL, api_key=XATA_API_KEY, branch_name=TEST_BRANCH)
 
-@pytest.fixture(scope= "session", autouse=True)
+
+@pytest.fixture(scope="session", autouse=True)
 def override_get_db():
     def override():
         return db
+
     app.dependency_overrides[get_db] = override
     yield db
+
 
 @pytest.fixture(scope="function", autouse=True)
 def cleanup():
@@ -28,6 +32,7 @@ def cleanup():
     db.sql().query('DELETE FROM "UserCredentials"')
     db.sql().query('DELETE FROM "ClientInformation"')
     db.sql().query('DELETE FROM "FuelData"')
+
 
 @pytest.fixture(scope="module", autouse=True)
 def client():

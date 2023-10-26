@@ -1,7 +1,8 @@
 
-from pydantic import BaseModel, StringConstraints, field_validator
-from typing import Annotated
 import re
+from typing import Annotated
+
+from pydantic import BaseModel, StringConstraints, field_validator
 
 states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
            'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
@@ -10,28 +11,27 @@ states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
            'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
 
 class User(BaseModel):
-    username: Annotated[str, StringConstraints(min_length=4, max_length=20)]
-    # probably need to hash this or something
-    password: Annotated[str, StringConstraints(min_length=8, max_length=50)]
+    username: Annotated[str, StringConstraints(min_length=4, max_length=20, strip_whitespace=True)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=50, strip_whitespace=True)]
 
     @field_validator("username")
     def username_alphanumeric(cls, v):
-        assert re.match(r'^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$', v), "Username must contain only letters, numbers, and underscores"
+        assert re.match(r'^[A-z0-9]+(?:[_][A-z0-9]+)*$', v), "Username must contain only letters, numbers, and underscores"
         return v
-    
+
     @field_validator("password")
     def validate_password(cls, v):
-        assert re.search(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-Za-z\d@$!%*?&#,]{8,}$', v), "Password must contain at least 1 special character and 1 number"
+        assert re.search(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-z\d@$!%*?&#,]{8,}$', v), "Password must contain at least 1 special character and 1 number"
         return v
-        
+
 
 class UserDetails(BaseModel):
-    full_name: Annotated[str, StringConstraints(min_length=1, max_length=50)]
-    address1: Annotated[str, StringConstraints(min_length=1, max_length=100)]
-    address2: Annotated[str, StringConstraints(max_length=100)] = ""
-    city: Annotated[str, StringConstraints(min_length=1, max_length=100)]
-    state: Annotated[str, StringConstraints(min_length=2, max_length=2)]
-    zipcode: Annotated[str, StringConstraints(min_length=5, max_length=9)]
+    full_name: Annotated[str, StringConstraints(min_length=1, max_length=50, strip_whitespace=True)]
+    address1: Annotated[str, StringConstraints(min_length=1, max_length=100, strip_whitespace=True)]
+    address2: Annotated[str, StringConstraints(max_length=100, strip_whitespace=True)] = ""
+    city: Annotated[str, StringConstraints(min_length=1, max_length=100, strip_whitespace=True)]
+    state: Annotated[str, StringConstraints(min_length=2, max_length=2, strip_whitespace=True)]
+    zipcode: Annotated[str, StringConstraints(min_length=5, max_length=9, strip_whitespace=True)]
 
     @field_validator("state")
     def validate_state(cls, v):
@@ -41,10 +41,11 @@ class UserDetails(BaseModel):
 
     @field_validator("full_name")
     def validate_full_name(cls, v):
-        assert re.match(r'^[A-Za-z]* [A-Za-z ]*$', v), "Please enter a valid name"
+        # A full name consists of a first name and last name separated by a space
+        assert re.match(r'^[A-z]+\s[A-z]+$', v), "Please enter a valid name"
         return v
-    
-    
+
+
 
 class FuelData(BaseModel):
     gallons_requested: int
@@ -59,12 +60,12 @@ class FuelData(BaseModel):
     def validate_gallons_requested(cls, v):
         assert v > 0, "Gallons requested must be greater than 0"
         return v
-    
+
     @field_validator("delivery_address")
     def validate_delivery_address(cls, v):
         assert len(v) > 0, "Delivery address cannot be empty"
         return v
-    
+
 
 UserCreds_Schema = {
     "columns": [

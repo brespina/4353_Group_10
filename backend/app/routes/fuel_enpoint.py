@@ -1,9 +1,11 @@
-import pytz
 from datetime import datetime
-from fastapi import Depends, HTTPException, APIRouter
+
+import pytz
+from fastapi import APIRouter, Depends, HTTPException
 from xata import XataClient
+
 from ..models import FuelData, UserDetails
-from ..utils import decode_token, get_db, oauth2_scheme, format_datetime
+from ..utils import decode_token, format_datetime, get_db, oauth2_scheme
 
 app = APIRouter()
 
@@ -18,10 +20,10 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
     # Will prob never execute
     if len(response) != 1:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    
+
     if response["records"][0]["require_details"] == True:
         raise HTTPException(status_code=400, detail="Add user details first")
-    
+
     response = db.sql().query(
         'SELECT full_name, address1, address2, city, state, zipcode FROM "ClientInformation" WHERE id = $1',
         [user],

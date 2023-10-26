@@ -1,12 +1,14 @@
+import os
+from datetime import datetime, timedelta, timezone
+
 import jwt
 import pytz
-import os
 from dotenv import load_dotenv
-from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from xata import XataClient
-from .models import UserCreds_Schema, ClientInfo_Schema, FuelQuote_Schema
+
+from .models import ClientInfo_Schema, FuelQuote_Schema, UserCreds_Schema
 
 load_dotenv()
 SECRET_KEY: str = os.getenv("SECRET_KEY")
@@ -57,11 +59,11 @@ def decode_token(token: str):
         return username
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
 
 def buildDB():
     db = intialize_db()
-    
+
     # Create the UserCredentials table
     db.table().create("UserCredentials")
     db.table().set_schema("UserCredentials", UserCreds_Schema)
