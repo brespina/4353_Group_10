@@ -3,7 +3,6 @@ import React, {
   useState,
   ChangeEvent,
   FormEvent,
-  MouseEventHandler,
   useEffect,
 } from "react";
 import api from "../components/api";

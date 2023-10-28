@@ -159,3 +159,15 @@ input:invalid
   cursor: pointer;
   transition: opacity 0.3s, transform 0.3s;
 }
+
+.error {
+  color: #d32f2f;
+  font-size: 0.9em;
+  margin-top: -16px;
+  margin-bottom: 5px;
+  font-weight: 500;
+  padding: 3px;
+  border-left: 3px solid #d32f2f;
+  background-color: #ffebee;
+  display: flex;
+}

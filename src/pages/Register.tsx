@@ -1,50 +1,56 @@
-import React, { FormEvent, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 import "../styles/fancydiv.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Company from "../components/Company";
 import api from "../components/api";
+import { useFormik } from "formik";
+import { registerSchema } from "../components/validationSchema";
 
 const Register: React.FC = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [displayBox, setDisplayBox] = useState(false);
   const [displayMessage, setDisplayMessage] = useState("");
 
-  const handleSubmit = async (s: FormEvent) => {
-    s.preventDefault();
-    try {
-      const response = await api.post(
-        "/api/register",
-        {
-          username,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      password: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: async (values) => {
+      try {
+        const response = await api.post(
+          "/api/register",
+          {
+            username: values.username,
+            password: values.password,
           },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (response.status === 200) {
+          setDisplayBox(true);
+          setDisplayMessage("Successfully signed up! Redirecting...");
+          setTimeout(() => {
+            navigate("/");
+            setDisplayBox(false);
+          }, 1500);
         }
-      );
-      if (response.status === 200) {
+      } catch (error) {
         setDisplayBox(true);
-        setDisplayMessage("Successfully signed up! Redirecting...");
+        setDisplayMessage("Registration failed. Try a different username.");
         setTimeout(() => {
-          navigate("/");
           setDisplayBox(false);
-        }, 1500);
+        }, 5000);
       }
-    } catch (error) {
-      setDisplayBox(true);
-      setDisplayMessage("Registration failed.");
-      setTimeout(() => {
-        setDisplayBox(false);
-      }, 5000);
-    }
-  };
+    },
+  });
 
   return (
     <div className="auth-page fancy-div">
@@ -52,7 +58,7 @@ const Register: React.FC = () => {
       <div className="form">
         <h2>Register</h2>
         <p>Create a new Singh City Fuel account</p>
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={formik.handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -60,10 +66,14 @@ const Register: React.FC = () => {
               id="username"
               placeholder="Enter your username"
               required
-              value={username}
-              onChange={(s) => setUsername(s.target.value)}
+              value={formik.values.username}
+              onChange={formik.handleChange}
               autoComplete="off"
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.username && formik.errors.username ? (
+              <div className="error">{formik.errors.username}</div>
+            ) : null}
           </div>
           <div className="password-input">
             <label htmlFor="password">Password</label>
@@ -72,11 +82,14 @@ const Register: React.FC = () => {
               id="password"
               placeholder="Enter your password"
               required
-              value={password}
-              onChange={(s) => setPassword(s.target.value)}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               autoComplete="off"
-              minLength={8}
             />
+            {formik.touched.password && formik.errors.password ? (
+              <div className="error">{formik.errors.password}</div>
+            ) : null}
             <span
               className="password-icon-container"
               onClick={() => setShowPassword(!showPassword)}

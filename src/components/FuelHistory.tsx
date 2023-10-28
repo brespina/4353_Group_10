@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import api from "../components/api";
 
 interface History {
@@ -8,16 +8,16 @@ interface History {
   delivery_date: string;
   delivery_address: string;
   suggested_price: number;
+  total_amount_due: number;
 }
 
 const FuelHistory = () => {
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
   const [fuelHistoryData, setFuelHistoryData] = useState<History[]>([]);
-  const [fuelHistoryDataExists, setFuelHistoryDataExists] = useState(false);
+  const [fuelHistoryDataExists, setFuelHistoryDataExists] = useState(true);
   const token = localStorage.getItem("token");
 
-  // using useLayoutEffect instead of useEffect may hurt performance
-  useLayoutEffect(() => {
+  useEffect(() => {
     const fetchHistory = async () => {
       try {
         const response = await api.get("/api/fuel_quote/", {
@@ -28,10 +28,10 @@ const FuelHistory = () => {
         setFuelHistoryData(response.data);
       } catch (error) {
         console.error(error);
+        setFuelHistoryDataExists(false);
       }
     };
     fetchHistory();
-    setFuelHistoryDataExists(true);
   }, [token]);
 
   const toggleExpand = (id: number) => {
@@ -42,15 +42,6 @@ const FuelHistory = () => {
     }
   };
 
-  function multiply({ gallons_requested, suggested_price }: History): number {
-    return gallons_requested * suggested_price;
-  }
-
-  const totalCost = fuelHistoryData.reduce(
-    (total, history) => total + multiply(history),
-    0
-  );
-
   const greyedOutStyle: React.CSSProperties = {
     backgroundColor: "#f2f2f2", // Grey background color
     color: "#000", // Grey text color
@@ -60,7 +51,11 @@ const FuelHistory = () => {
   return (
     <>
       {!fuelHistoryDataExists ? (
-        <div>You do not have any fuel history</div>
+        <div>
+          <p>
+            <h2 className="fancy-div-history">You do not have any fuel history</h2>
+          </p>
+        </div>
       ) : (
         fuelHistoryData.map((history) => (
           <div key={history.id} className="client-history-item">
@@ -70,7 +65,7 @@ const FuelHistory = () => {
               aria-expanded={expandedIds.includes(history.id)}
               aria-controls={`details-${history.id}`}
             >
-              {history.date_requested} delivery date: {history.delivery_date}
+              {history.date_requested} Delivers On: {history.delivery_date}
             </button>
             {expandedIds.includes(history.id) && (
               <div className="details">
@@ -115,7 +110,7 @@ const FuelHistory = () => {
                   <input
                     style={greyedOutStyle}
                     type="text"
-                    value={totalCost}
+                    value={history.total_amount_due}
                     readOnly
                   />
                 </div>
