@@ -10,7 +10,7 @@ export const registerSchema = yup.object().shape({
     username: yup
         .string()
         .required("Please enter your username")
-        .matches(/^[A-z0-9]+(?:[_][A-z0-9]+)*$/, "Username must contain only letters, numbers, and underscores")
+        .matches(/^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$/, "Username must contain only letters, numbers, and underscores")
         .min(4, "Username must be at least 4 characters")
         .max(15, "Username must be less than 20 characters"),
     password: yup
@@ -18,14 +18,14 @@ export const registerSchema = yup.object().shape({
         .required("Please enter your password")
         .min(8, "Password must be at least 8 characters")
         .max(50, "Password must be less than 50 characters")
-        .matches(/^(?=.*\d)(?=.*[@$!%*?&#,])[A-z\d@$!%*?&#,]{8,}$/, "Password must contain at least 1 special character and 1 number"),
+        .matches(/^(?=.*\d)(?=.*[@$!%*?&#,])[A-Za-z\d@$!%*?&#,]{8,}$/, "Password must contain at least 1 special character and 1 number"),
 });
 
 export const profileSchema = yup.object().shape({
     full_name: yup
         .string()
         .required("Full name is required")
-        .matches(/^[A-z]+\s[A-z]+$/, "Please enter a valid name")
+        .matches(/^[A-Za-z]+\s[A-Za-z]+$/, "Please enter a valid name")
         .max(50)
         .min(2),
     address1: yup

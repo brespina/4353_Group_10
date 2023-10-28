@@ -15,13 +15,13 @@ class User(BaseModel):
 
     @field_validator("username")
     def username_alphanumeric(cls, v):
-        if not re.match(r'^[A-z0-9]+(?:[_][A-z0-9]+)*$', v):
+        if not re.match(r'^[A-Za-z0-9]+(?:[_][A-Za-z0-9]+)*$', v):
             raise ValueError("Username must contain only letters, numbers, and underscores")
         return v
 
     @field_validator("password")
     def validate_password(cls, v):
-        if not re.match(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-z\d@$!%*?&#,]{8,}$', v):
+        if not re.match(r'^(?=.*\d)(?=.*[@$!%*?&#,])[A-Za-z\d@$!%*?&#,]{8,}$', v):
             raise ValueError("Password must contain at least 1 special character and 1 number")
         return v
 
@@ -43,7 +43,7 @@ class UserDetails(BaseModel):
     @field_validator("full_name")
     def validate_full_name(cls, v):
         # A full name consists of a first name and last name separated by a space
-        if not re.match(r'^[A-z]+\s[A-z]+$', v):
+        if not re.match(r'^[A-Za-z]+\s[A-Za-z]+$', v):
             raise ValueError("Please enter a valid name")
         return v
 
