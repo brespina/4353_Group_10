@@ -126,7 +126,7 @@ a:hover {
 
 .password-icon-container {
   position: absolute;
-  top: 60%;
+  top: 3.2rem;
   right: 0.5rem;
   transform: translateY(-50%);
   cursor: pointer;

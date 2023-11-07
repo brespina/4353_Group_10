@@ -1,8 +1,5 @@
 import FuelQuoteForm from "../components/FuelQuoteForm";
 
-// const Profile: React.FC = (ProfileForm.FormData.deliveryAddr) => {
-
-// }
 const FuelQuotePage = () => {
   return (
     <div>
