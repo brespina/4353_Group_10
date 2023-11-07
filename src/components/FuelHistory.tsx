@@ -51,7 +51,11 @@ const FuelHistory = () => {
   return (
     <>
       {!fuelHistoryDataExists ? (
-        <div>You do not have any fuel history</div>
+        <div>
+          <p>
+            <h2 className="fancy-div-history">You do not have any fuel history</h2>
+          </p>
+        </div>
       ) : (
         fuelHistoryData.map((history) => (
           <div key={history.id} className="client-history-item">
