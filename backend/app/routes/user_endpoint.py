@@ -7,6 +7,7 @@ from xata import XataClient
 
 from ..models import User, UserDetails
 from ..utils import create_token, decode_token, get_db, oauth2_scheme
+from ..routes.fuel_enpoint import cache
 
 app = APIRouter()
 
@@ -162,5 +163,18 @@ async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient =
         state=record["state"],
         zipcode=record["zipcode"],
     )
+
+    response = db.sql().query(
+        'SELECT COUNT(*) FROM "FuelData" WHERE username = $1', [user]
+    )
+
+    has_history = True if response["records"][0]["count"] > 0 else False
+
+    combined_data = {
+        **record,
+        "history": has_history,
+    }
+
+    cache.set(user, combined_data)
 
     return details

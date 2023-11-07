@@ -1,13 +1,14 @@
 from datetime import datetime
-
 import pytz
 from fastapi import APIRouter, Depends, HTTPException
 from xata import XataClient
-
 from ..models import FuelData, UserDetails
-from ..utils import decode_token, format_datetime, get_db, oauth2_scheme
+from ..utils import decode_token, format_datetime, get_db, oauth2_scheme, calculate_price, Cache
+from time import sleep
 
 app = APIRouter()
+
+cache = Cache()
 
 @app.post("/api/fuel_quote/", description="Adds a fuel quote")
 async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
@@ -28,6 +29,11 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
         'SELECT full_name, address1, address2, city, state, zipcode FROM "ClientInformation" WHERE id = $1',
         [user],
     )
+    
+    cached_data = cache.get(user)
+    if cached_data:
+        cached_data["history"] = True
+        cache.set(user, cached_data)
 
     record = response["records"][0]
     details = UserDetails(
@@ -118,3 +124,25 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
         num += 1
 
     return data
+
+
+
+
+@app.get("/api/get_price/", description="Return the price of fuel")
+async def get_price(gallons: int, token: str = Depends(oauth2_scheme)):
+    user = decode_token(token)
+    data = cache.get(user)
+    retries = 0
+    while data is None:
+        if retries > 5:
+            raise HTTPException(status_code=422, detail="Not allowed")
+        sleep(0.1)
+        data = cache.get(user)
+        # Limit the number of retries
+        retries += 1
+
+    price = calculate_price(data["state"], data["history"], gallons)
+
+    return {"suggested_price": price}
+
+    

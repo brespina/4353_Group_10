@@ -1,6 +1,5 @@
 import re
 from typing import Annotated
-
 from pydantic import BaseModel, StringConstraints, field_validator
 
 states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
@@ -69,7 +68,6 @@ class FuelData(BaseModel):
         if not len(v) > 0:
             raise ValueError("Delivery address cannot be empty")
         return v
-
 
 UserCreds_Schema = {
     "columns": [
