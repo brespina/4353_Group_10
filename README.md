@@ -6,7 +6,7 @@ This repository is for group 10 in COSC 4353 Fall 2023 Semester at the Universit
 
 For the **frontend**, install Node.js and run in the terminal:
 
-1. `cd 4353_Group_10`
+1. `cd 4353_Group_10/frontend`
 2. `npm i`
 3. `npm run dev`
 
