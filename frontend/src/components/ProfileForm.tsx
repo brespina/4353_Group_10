@@ -23,7 +23,7 @@ const ProfileForm = () => {
     onSubmit: async (values) => {
       const token = localStorage.getItem("token");
       try {
-        const response = await api.post("/api/user/", values, {
+        const response = await api.post("/api/user", values, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

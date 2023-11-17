@@ -10,7 +10,7 @@ app = APIRouter()
 
 cache = Cache()
 
-@app.post("/api/fuel_quote/", description="Adds a fuel quote")
+@app.post("/api/fuel_quote", description="Adds a fuel quote")
 async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
 
@@ -19,7 +19,7 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
     )
 
     # Will prob never execute
-    if len(response) != 1:
+    if len(response.get('records', [])) == 0:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     if response["records"][0]["require_details"] is True:
@@ -29,11 +29,6 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
         'SELECT full_name, address1, address2, city, state, zipcode FROM "ClientInformation" WHERE id = $1',
         [user],
     )
-    
-    cached_data = cache.get(user)
-    if cached_data:
-        cached_data["history"] = True
-        cache.set(user, cached_data)
 
     record = response["records"][0]
     details = UserDetails(
@@ -47,7 +42,7 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
 
     data.delivery_address = (
         details.address1
-        + details.address2
+        + ("" if not details.address2 else " " + details.address2)
         + ", "
         + details.city
         + ", "
@@ -59,14 +54,18 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
     cst = pytz.timezone("America/Chicago")
     current_time_cst = datetime.now(cst)
     data.date_requested = current_time_cst.isoformat()
+    
+    check_history = db.sql().query(
+        'SELECT COUNT(*) FROM "FuelData" WHERE username = $1', [user]
+    )
 
-    # later we will use pricing module to determine total_amound_due in backend
-    # I am aware that frontend cutting the digits off at 2 decimal but this is rounding but once again will be fixed after pricing module
-    total = data.gallons_requested * data.suggested_price
-    total = round(total, 2)
-    if total != data.total_amount_due:
-        print(data.gallons_requested * data.suggested_price)
-        raise HTTPException(status_code=422, detail="Invalid total amount due")
+    history = True if check_history["records"][0]["count"] > 0 else False
+    
+    data.suggested_price = calculate_price(
+        details.state, history, data.gallons_requested
+    )
+
+    data.total_amount_due = data.suggested_price * data.gallons_requested
 
     db.sql().query(
         'INSERT INTO "FuelData" (username, gallons_requested, delivery_address, delivery_date, suggested_price, total_amount_due, date_requested) VALUES ($1, $2, $3, $4, $5, $6, $7)',
@@ -84,14 +83,14 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
     return {"message": "Fuel quote registered successfully!"}
 
 
-@app.get("/api/fuel_quote/", description="Returns a list of fuel quotes")
+@app.get("/api/fuel_quote", description="Returns a list of fuel quotes")
 async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
     details = db.sql().query(
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
     # Prob never execute
-    if len(details) != 1:
+    if len(details.get("records", [])) == 0:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     if details["records"][0]["require_details"] is True:
@@ -102,7 +101,7 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
         [user],
     )
 
-    if len(response) == 0:
+    if len(response.get('records', [])) == 0:
         raise HTTPException(status_code=501, detail="No fuel quotes registered")
 
     data = []
@@ -128,7 +127,7 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
 
 
 
-@app.get("/api/get_price/", description="Return the price of fuel")
+@app.get("/api/get_price", description="Return the price of fuel")
 async def get_price(gallons: int, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
     data = cache.get(user)
@@ -143,6 +142,6 @@ async def get_price(gallons: int, token: str = Depends(oauth2_scheme)):
 
     price = calculate_price(data["state"], data["history"], gallons)
 
-    return {"suggested_price": price}
+    return {"ppg": price}
 
     

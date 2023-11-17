@@ -24,14 +24,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 global_db = None
 
 class Cache():
-    def __init__(self, exp_sec = 30):
+    def __init__(self, exp_min = 30):
         self.cache = {}
-        self.exp_sec = exp_sec
+        self.exp_min = exp_min
 
     def set(self, key, value):
         self.cache[key] = {
             "value": value,
-            "expire": datetime.now() + timedelta(seconds=self.exp_sec)
+            "expire": datetime.now() + timedelta(minutes=self.exp_min)
         }
     
     def get(self, key):
@@ -60,7 +60,7 @@ def calculate_price(state, history, amount) -> float:  # type: ignore
     curr_price = 1.50
     profit_factor = 0.1
     history_factor = 0.01 if history else 0.0
-    location_factor = 0.02 if state == "TX" else 0.02
+    location_factor = 0.02 if state == "TX" else 0.04
     gallons_factor = 0.02 if amount > 1000 else 0.03
 
     margin = curr_price * (location_factor - history_factor + gallons_factor + profit_factor)

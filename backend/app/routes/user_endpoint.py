@@ -18,7 +18,7 @@ async def register(user: User, db: XataClient = Depends(get_db)):
         'SELECT id FROM "UserCredentials" WHERE id = $1', [user.username]
     )
 
-    if len(response) == 1:
+    if len(response.get('records', [])) != 0:
         raise HTTPException(status_code=409, detail="Username already registered")
 
     password = bcrypt.hashpw((user.password).encode(), bcrypt.gensalt())
@@ -40,7 +40,7 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()], db: XataC
         [data.username],
     )
 
-    if len(response) != 1:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     stored_pass = response["records"][0]["password"]
@@ -59,15 +59,14 @@ async def login(data: Annotated[OAuth2PasswordRequestForm, Depends()], db: XataC
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
 
-@app.post("/api/user/", description="Adds user details")
+@app.post("/api/user", description="Adds user details")
 async def add_user_details(details: UserDetails, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
     response = db.sql().query(
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
-
     # Covers DB errors and user not registered
-    if len(response) != 1:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=400, detail="User not registered")
 
     if response["records"][0]["require_details"] is False:
@@ -85,6 +84,7 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
             user,
         ],
     )
+    
 
     if not response.is_success():
         raise HTTPException(status_code=400, detail="Something went wrong")
@@ -99,7 +99,7 @@ async def add_user_details(details: UserDetails, token: str = Depends(oauth2_sch
     return {"message": "User details registered successfully!"}
 
 
-@app.put("/api/user/", description="Updates user details")
+@app.put("/api/user", description="Updates user details")
 async def update_user_details(
     details: UserDetails, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)
 ):
@@ -109,7 +109,7 @@ async def update_user_details(
     )
 
     # Covers DB errors and user not registered
-    if len(response) != 1:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=400, detail="User not registered")
 
     if response["records"][0]["require_details"] is True:
@@ -131,7 +131,7 @@ async def update_user_details(
     return {"message": "User details updated successfully!"}
 
 
-@app.get("/api/user/", description="Returns user details")
+@app.get("/api/user", description="Returns user details")
 async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
     user = decode_token(token)
 
@@ -139,7 +139,7 @@ async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient =
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
 
-    if len(response) != 1:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=400, detail="Something went wrong") # Prob will never execute
 
     if response["records"][0]["require_details"] is True:
@@ -150,7 +150,7 @@ async def get_user_details(token: str = Depends(oauth2_scheme), db: XataClient =
         [user],
     )
 
-    if len(response) != 1:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=400, detail="Something went wrong") # Prob will never execute
 
     record = response["records"][0]

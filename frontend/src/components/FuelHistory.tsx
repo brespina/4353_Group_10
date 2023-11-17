@@ -20,7 +20,7 @@ const FuelHistory = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await api.get("/api/fuel_quote/", {
+        const response = await api.get("/api/fuel_quote", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -110,7 +110,7 @@ const FuelHistory = () => {
                   <input
                     style={greyedOutStyle}
                     type="text"
-                    value={history.total_amount_due}
+                    value={history.total_amount_due.toFixed(2)}
                     readOnly
                   />
                 </div>
