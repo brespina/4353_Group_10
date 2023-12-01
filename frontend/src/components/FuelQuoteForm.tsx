@@ -16,14 +16,39 @@ const FuelQuoteForm = () => {
     deliveryAddr: "",
   });
 
+  const [formValid, setFormValid] = useState(false);
+
+  // const updateFormValidity = () => {
+  //   const isFormValid =
+  //     formData.gallons !== 0 &&
+  //     formData.deliveryAddr !== "" &&
+  //     formData.deliveryDate !== "" &&
+  //     formData.ppg !== "" &&
+  //     formData.grandTotal !== "";
+
+  //   setFormValid(isFormValid);
+  // }
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+    
+
+
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
     }));
+
+    const allFieldsFilled =
+      formData.gallons !== 0 &&
+      formData.deliveryAddr !== "" &&
+      formData.deliveryDate !== "" &&
+      formData.ppg !== "" &&
+      formData.grandTotal !== "";
+
+    setFormValid(allFieldsFilled);
   };
 
   const token = localStorage.getItem("token");
@@ -131,6 +156,17 @@ const FuelQuoteForm = () => {
     }
   }, [formData.gallons, token]); // make sure to include token as dependency
 
+  useEffect(() => {
+    // Validation function to check if all fields have a value
+    const allFieldsFilled =
+      formData.gallons !== 0 &&
+      formData.deliveryAddr !== "" &&
+      formData.deliveryDate !== "" &&
+      formData.ppg !== "" &&
+      formData.grandTotal !== "";
+
+    setFormValid(allFieldsFilled);
+  }, [formData]);
   // Define CSS styles for greyed out input fields
   const greyedOutStyle: React.CSSProperties = {
     backgroundColor: "#E0E0E0", // Grey background color
@@ -138,6 +174,7 @@ const FuelQuoteForm = () => {
     cursor: "not-allowed", // Change cursor to "not-allowed"
   };
 
+  const buttonStyle = formValid ? {} : greyedOutStyle;
   return (
     <div>
       {/* <h2>Fuel Quote Form</h2> */}
@@ -208,7 +245,7 @@ const FuelQuoteForm = () => {
             style={greyedOutStyle}
           ></input>
         </div>
-        <button type="button" onClick={handleSubmit}>
+        <button type="submit" onClick={handleSubmit} disabled={!formValid} style={buttonStyle}>
           Submit Quote
         </button>
       </form>
