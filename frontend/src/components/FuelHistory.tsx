@@ -64,9 +64,9 @@ const FuelHistory = () => {
       ) : !fuelHistoryDataExists ? (
         <div>
           <p>
-            <h2 className="fancy-div-history">
-              You do not have any fuel history
-            </h2>
+            <p className="fancy-div-history">
+              You do not have any fuel history.
+            </p>
           </p>
         </div>
       ) : (
