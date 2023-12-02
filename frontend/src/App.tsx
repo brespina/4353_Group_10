@@ -4,7 +4,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import FuelQuotePage from "./pages/FuelQuotePage";
-import FuelHistory from "./components/FuelHistory";
+import FuelHistoryPage from "./pages/FuelHistoryPage";
 import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 
 function ProtectedRoute({ children, validPaths }: any) {
@@ -80,7 +80,7 @@ function App() {
             path="/history"
             element={
               <ProtectedRoute validPaths={loggedInValidPaths}>
-                <FuelHistory />
+                <FuelHistoryPage />
               </ProtectedRoute>
             }
           />
