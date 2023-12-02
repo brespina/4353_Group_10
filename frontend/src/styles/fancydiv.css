@@ -37,3 +37,7 @@
   position: absolute;
   transform: translateY(10%);
 }
+
+.details {
+  padding-top: 1rem;
+}

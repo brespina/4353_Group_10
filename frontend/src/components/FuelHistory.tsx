@@ -49,7 +49,7 @@ const FuelHistory = () => {
   };
 
   const standardCursor: React.CSSProperties = {
-    cursor: "context-menu"
+    cursor: "context-menu",
   };
 
   return (
@@ -57,7 +57,9 @@ const FuelHistory = () => {
       {!fuelHistoryDataExists ? (
         <div>
           <p>
-            <h2 className="fancy-div-history">You do not have any fuel history</h2>
+            <h2 className="fancy-div-history">
+              You do not have any fuel history
+            </h2>
           </p>
         </div>
       ) : (
@@ -74,17 +76,20 @@ const FuelHistory = () => {
             {expandedIds.includes(history.id) && (
               <div className="details">
                 <div>
-                  <label htmlFor="gallons_requested" style={standardCursor}>Gallons requested:</label>
+                  <label htmlFor="gallons_requested" style={standardCursor}>
+                    Gallons requested:
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
-                    
                     value={history.gallons_requested}
                     readOnly
                   />
                 </div>
                 <div>
-                  <label htmlFor="delivery_date" style={standardCursor}>Delivery Date:</label>
+                  <label htmlFor="delivery_date" style={standardCursor}>
+                    Delivery Date:
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -93,7 +98,9 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="delivery_address" style={standardCursor}>Delivery Address</label>
+                  <label htmlFor="delivery_address" style={standardCursor}>
+                    Delivery Address
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -102,7 +109,9 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="suggested_price" style={standardCursor}>Suggested Price</label>
+                  <label htmlFor="suggested_price" style={standardCursor}>
+                    Suggested Price
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -111,7 +120,9 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="total_price" style={standardCursor}>Total Price</label>
+                  <label htmlFor="total_price" style={standardCursor}>
+                    Total Price
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
