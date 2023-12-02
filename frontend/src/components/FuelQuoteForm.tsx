@@ -11,45 +11,66 @@ const FuelQuoteForm = () => {
   const [formData, setFormData] = useState({
     gallons: 0,
     deliveryDate: "",
-    ppg: 3.47,
-    grandTotal: 0.0,
+    ppg: "",
+    grandTotal: "",
     deliveryAddr: "",
   });
+
+  const [formValid, setFormValid] = useState(false);
+
+  // const updateFormValidity = () => {
+  //   const isFormValid =
+  //     formData.gallons !== 0 &&
+  //     formData.deliveryAddr !== "" &&
+  //     formData.deliveryDate !== "" &&
+  //     formData.ppg !== "" &&
+  //     formData.grandTotal !== "";
+
+  //   setFormValid(isFormValid);
+  // }
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    
+
+
+    setFormData(prevState => ({
+      ...prevState,
       [name]: value,
-    });
+    }));
+
+    const allFieldsFilled =
+      formData.gallons !== 0 &&
+      formData.deliveryAddr !== "" &&
+      formData.deliveryDate !== "" &&
+      formData.ppg !== "" &&
+      formData.grandTotal !== "";
+
+    setFormValid(allFieldsFilled);
   };
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     api
-      .get("/api/user/", { headers: { Authorization: `Bearer ${token}` } })
+      .get("/api/user", { headers: { Authorization: `Bearer ${token}` } })
       .then((response) => {
-        setFormData({
-          ...formData,
-          deliveryAddr:
-            response.data.address1 +
-            " " +
-            response.data.address2 +
-            ", " +
-            response.data.city +
-            ", " +
-            response.data.state +
-            " " +
-            response.data.zipcode,
-        });
+        let deliveryAddr = response.data.address1 + ", ";
+        if (response.data.address2) {
+          deliveryAddr += response.data.address2 + ", ";
+        }
+        deliveryAddr += response.data.city + ", " + response.data.state + " " + response.data.zipcode;
+        setFormData(prevState => ({
+          ...prevState,
+          deliveryAddr,
+        }));
       })
       .catch((error) => {
         console.log(error);
       });
-  }, []);
+  }, [token]);
 
   const [displayBox, setDisplayBox] = useState(false);
   const [displayMessage, setDisplayMessage] = useState("");
@@ -74,12 +95,12 @@ const FuelQuoteForm = () => {
     }
     try {
       const response = await api.post(
-        "/api/fuel_quote/",
+        "/api/fuel_quote",
         {
           gallons_requested: formData.gallons,
           delivery_address: formData.deliveryAddr, // Server will handle
           delivery_date: formData.deliveryDate,
-          suggested_price: formData.ppg,
+          suggested_price: formData.ppg, // Server will handle
           total_amount_due: formData.grandTotal,
           date_requested: "server will handle",
           id: 0, // Server will handle
@@ -87,8 +108,11 @@ const FuelQuoteForm = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.status === 200) {
-        formData.gallons = 0;
-        formData.deliveryDate = "";
+        setFormData(prevState => ({
+          ...prevState,
+          gallons: 0,
+          deliveryDate: "",
+        }));
         setDisplayBox(true);
         setDisplayMessage("Quote submitted sucessfully!");
         setTimeout(() => {
@@ -102,25 +126,47 @@ const FuelQuoteForm = () => {
         setDisplayBox(false);
       }, 2000);
     }
-    console.log(formData);
   };
 
   // handle price
-  const handleCalculatePrice = () => {
-    const pricePerGallon = formData.ppg;
+  const handleCalculatePrice = async () => {
     const numGallons = formData.gallons;
-    const finalPrice = pricePerGallon * numGallons;
+    try {
+      const get_price = await api.get("/api/get_price", {
+        params: { gallons: numGallons },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const pricePerGallon = get_price.data.ppg;
+      const finalPrice = pricePerGallon * numGallons;
 
-    setFormData({
-      ...formData,
-      grandTotal: Number(finalPrice.toFixed(2)),
-    });
+      setFormData(prevState => ({
+        ...prevState,
+        grandTotal: finalPrice.toFixed(2),
+        ppg: pricePerGallon,
+      }));
+    } catch (error) {
+      console.error("Can't get price error: ", error);
+    }
   };
 
-  useEffect(() => {
-    handleCalculatePrice();
-  }, [formData.gallons]);
 
+  useEffect(() => {
+    if (formData.gallons >= 0) {
+      handleCalculatePrice();
+    }
+  }, [formData.gallons, token]); // make sure to include token as dependency
+
+  useEffect(() => {
+    // Validation function to check if all fields have a value
+    const allFieldsFilled =
+      formData.gallons !== 0 &&
+      formData.deliveryAddr !== "" &&
+      formData.deliveryDate !== "" &&
+      formData.ppg !== "" &&
+      formData.grandTotal !== "";
+
+    setFormValid(allFieldsFilled);
+  }, [formData]);
   // Define CSS styles for greyed out input fields
   const greyedOutStyle: React.CSSProperties = {
     backgroundColor: "#E0E0E0", // Grey background color
@@ -128,6 +174,7 @@ const FuelQuoteForm = () => {
     cursor: "not-allowed", // Change cursor to "not-allowed"
   };
 
+  const buttonStyle = formValid ? {} : greyedOutStyle;
   return (
     <div>
       {/* <h2>Fuel Quote Form</h2> */}
@@ -142,7 +189,6 @@ const FuelQuoteForm = () => {
             onChange={handleChange}
             required
             min={1}
-            max={100}
           />
         </div>
         <div>
@@ -199,7 +245,7 @@ const FuelQuoteForm = () => {
             style={greyedOutStyle}
           ></input>
         </div>
-        <button type="button" onClick={handleSubmit}>
+        <button type="submit" onClick={handleSubmit} disabled={!formValid} style={buttonStyle}>
           Submit Quote
         </button>
       </form>

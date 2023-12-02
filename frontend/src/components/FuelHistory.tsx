@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import LoadingSpinner from "./LoadingSpinner";
 import api from "../components/api";
 
 interface History {
@@ -16,19 +17,23 @@ const FuelHistory = () => {
   const [fuelHistoryData, setFuelHistoryData] = useState<History[]>([]);
   const [fuelHistoryDataExists, setFuelHistoryDataExists] = useState(true);
   const token = localStorage.getItem("token");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await api.get("/api/fuel_quote/", {
+        setIsLoading(true);
+        const response = await api.get("/api/fuel_quote", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         setFuelHistoryData(response.data);
+        setIsLoading(false);
       } catch (error) {
         console.error(error);
         setFuelHistoryDataExists(false);
+        setIsLoading(false);
       }
     };
     fetchHistory();
@@ -45,15 +50,23 @@ const FuelHistory = () => {
   const greyedOutStyle: React.CSSProperties = {
     backgroundColor: "#f2f2f2", // Grey background color
     color: "#000", // Grey text color
-    cursor: "not-allowed", // Change cursor to "not-allowed"
+    cursor: "default", // Change cursor to "default", this stops the mouse from changing when hovering over text
+  };
+
+  const standardCursor: React.CSSProperties = {
+    cursor: "context-menu",
   };
 
   return (
     <>
-      {!fuelHistoryDataExists ? (
+      {isLoading ? (
+        <div>{LoadingSpinner()}</div>
+      ) : !fuelHistoryDataExists ? (
         <div>
           <p>
-            <h2 className="fancy-div-history">You do not have any fuel history</h2>
+            <p className="fancy-div-history">
+              You do not have any fuel history.
+            </p>
           </p>
         </div>
       ) : (
@@ -70,7 +83,9 @@ const FuelHistory = () => {
             {expandedIds.includes(history.id) && (
               <div className="details">
                 <div>
-                  <label htmlFor="gallons_requested">Gallons requested:</label>
+                  <label htmlFor="gallons_requested" style={standardCursor}>
+                    Gallons requested:
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -79,7 +94,9 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="delivery_date">Delivery Date:</label>
+                  <label htmlFor="delivery_date" style={standardCursor}>
+                    Delivery Date:
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -88,7 +105,9 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="delivery_address">Delivery Address</label>
+                  <label htmlFor="delivery_address" style={standardCursor}>
+                    Delivery Address
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -97,7 +116,9 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="suggested_price">Suggested Price</label>
+                  <label htmlFor="suggested_price" style={standardCursor}>
+                    Suggested Price
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
@@ -106,11 +127,13 @@ const FuelHistory = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="total_price">Total Price</label>
+                  <label htmlFor="total_price" style={standardCursor}>
+                    Total Price
+                  </label>
                   <input
                     style={greyedOutStyle}
                     type="text"
-                    value={history.total_amount_due}
+                    value={history.total_amount_due.toFixed(2)}
                     readOnly
                   />
                 </div>

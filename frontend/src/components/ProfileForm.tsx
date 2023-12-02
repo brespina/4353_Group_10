@@ -1,48 +1,15 @@
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+// src/components/ProfileForm.tsx
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AxiosError, isAxiosError } from "axios";
 import api from "../components/api";
 import { useFormik } from "formik";
 import { profileSchema } from "../components/validationSchema";
 
-const Profile = () => {
-  const [isEditable, setIsEditable] = useState(false);
+const ProfileForm = () => {
+  const navigate = useNavigate();
   const [displayBox, setDisplayBox] = useState(false);
   const [displayMessage, setDisplayMessage] = useState("");
-
-  const greyedOutStyle: React.CSSProperties = {
-    backgroundColor: "#E0E0E0", // Grey background color
-    color: "#000", // Grey text color
-    cursor: "not-allowed", // Change cursor to "not-allowed"
-  };
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await api.get("/api/user/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.status === 200) {
-          formik.setFieldValue("full_name", response.data.full_name);
-          formik.setFieldValue("address1", response.data.address1);
-          formik.setFieldValue("address2", response.data.address2);
-          formik.setFieldValue("city", response.data.city);
-          formik.setFieldValue("state", response.data.state);
-          formik.setFieldValue("zipcode", response.data.zipcode);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchProfile();
-  }, []);
-
-  const handleEdit = () => {
-    setIsEditable(true);
-  };
-
   const formik = useFormik({
     initialValues: {
       full_name: "",
@@ -54,29 +21,24 @@ const Profile = () => {
     },
     validationSchema: profileSchema,
     onSubmit: async (values) => {
+      const token = localStorage.getItem("token");
       try {
-        const token = localStorage.getItem("token");
-        const response = await api.put("/api/user/", values, {
+        const response = await api.post("/api/user", values, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         if (response.status === 200) {
-          setDisplayMessage("Profile saved successfully!");
-          setDisplayBox(true);
-          setIsEditable(false);
-          setTimeout(() => {
-            setDisplayBox(false);
-          }, 1500);
+          navigate("/home");
         }
       } catch (error) {
+        // console.log(error);
         if (isAxiosError(error)) {
           const err = error as AxiosError;
           if (err.response?.status === 422) {
-            //const errorMessage = error.response?.data.detail[0].msg.split(", ")[0];
             const errorMessage = error.response?.data.detail[0].msg;
-            setDisplayMessage(errorMessage);
             setDisplayBox(true);
+            setDisplayMessage(errorMessage);
             setTimeout(() => {
               setDisplayBox(false);
             }, 2000);
@@ -94,38 +56,36 @@ const Profile = () => {
 
   return (
     <div>
-      <h2>Edit your profile</h2>
+      <h2>Complete your profile</h2>
       <form onSubmit={formik.handleSubmit}>
         <div>
-          <label htmlFor="full_name">Full Name</label>
+          <label htmlFor="full_name">Full Name (required)</label>
           <input
             type="text"
             id="full_name"
             name="full_name"
             value={formik.values.full_name}
             onChange={formik.handleChange}
-            disabled={!isEditable}
+            required
             minLength={1}
             maxLength={50}
-            style={isEditable ? undefined : greyedOutStyle}
             onBlur={formik.handleBlur}
           />
           {formik.touched.full_name && formik.errors.full_name ? (
             <div className="error">{formik.errors.full_name}</div>
-          ) : null}{" "}
+          ) : null}
         </div>
         <div>
-          <label htmlFor="address1">Address 1</label>
+          <label htmlFor="address1">Address 1 (required)</label>
           <input
             type="text"
             id="address1"
             name="address1"
             value={formik.values.address1}
             onChange={formik.handleChange}
-            disabled={!isEditable}
+            required
             minLength={1}
             maxLength={100}
-            style={isEditable ? undefined : greyedOutStyle}
             onBlur={formik.handleBlur}
           />
           {formik.touched.address1 && formik.errors.address1 ? (
@@ -133,34 +93,31 @@ const Profile = () => {
           ) : null}
         </div>
         <div>
-          <label htmlFor="address2">Address 2</label>
+          <label htmlFor="address2">Address 2 (optional)</label>
           <input
             type="text"
             id="address2"
             name="address2"
             value={formik.values.address2}
             onChange={formik.handleChange}
-            disabled={!isEditable}
             maxLength={100}
-            style={isEditable ? undefined : greyedOutStyle}
             onBlur={formik.handleBlur}
           />
           {formik.touched.address2 && formik.errors.address2 ? (
             <div className="error">{formik.errors.address2}</div>
-          ) : null}{" "}
+          ) : null}
         </div>
         <div>
-          <label htmlFor="city">City</label>
+          <label htmlFor="city">City (required)</label>
           <input
             type="text"
             id="city"
             name="city"
             value={formik.values.city}
             onChange={formik.handleChange}
-            disabled={!isEditable}
+            required
             minLength={1}
             maxLength={100}
-            style={isEditable ? undefined : greyedOutStyle}
             onBlur={formik.handleBlur}
           />
           {formik.touched.city && formik.errors.city ? (
@@ -168,15 +125,13 @@ const Profile = () => {
           ) : null}{" "}
         </div>
         <div>
-          <label htmlFor="state">State</label>
+          <label htmlFor="state">State (required)</label>
           <select
             id="state"
             name="state"
-            style={isEditable ? undefined : greyedOutStyle}
             value={formik.values.state}
             onChange={formik.handleChange}
             required
-            disabled={!isEditable}
           >
             <option value="">Select State</option>
             <option value="AL">Alabama</option>
@@ -232,39 +187,31 @@ const Profile = () => {
           </select>
         </div>
         <div>
-          <label htmlFor="zipcode">Zipcode</label>
+          <label htmlFor="zipcode">
+            Zipcode (required, at least 5 characters)
+          </label>
           <input
             type="text"
             id="zipcode"
             name="zipcode"
             value={formik.values.zipcode}
             onChange={formik.handleChange}
-            disabled={!isEditable}
+            required
             minLength={5}
             maxLength={9}
-            style={isEditable ? undefined : greyedOutStyle}
             onBlur={formik.handleBlur}
           />
           {formik.touched.zipcode && formik.errors.zipcode ? (
             <div className="error">{formik.errors.zipcode}</div>
           ) : null}{" "}
         </div>
-        {!isEditable && (
-          <button type="button" onClick={handleEdit}>
-            Edit profile
-          </button>
-        )}
-        {isEditable && <button type="submit">Save profile</button>}
+        <button type="submit">Save</button>
       </form>
       {displayBox && (
         <div
-          className={`notification-box ${
-            displayMessage === "Profile saved successfully!"
-              ? "success-box"
-              : "error-box"
-          }`}
+          className="error-box"
           onClick={() => setDisplayBox(false)}
-          style={{ marginTop: "20px" }}
+          style={{ marginTop: "10px" }}
         >
           {displayMessage}
         </div>
@@ -273,4 +220,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileForm;

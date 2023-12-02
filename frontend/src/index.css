@@ -11,7 +11,9 @@ body {
 }
 
 .container {
-  margin: 1rem;
+  margin: auto;
+  padding: 0rem 1rem;
+  max-width: 59rem;
   height: 100%;
   text-align: center;
 }
