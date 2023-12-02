@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import LoadingSpinner from "./LoadingSpinner";
 import api from "../components/api";
 
 interface History {
@@ -16,19 +17,23 @@ const FuelHistory = () => {
   const [fuelHistoryData, setFuelHistoryData] = useState<History[]>([]);
   const [fuelHistoryDataExists, setFuelHistoryDataExists] = useState(true);
   const token = localStorage.getItem("token");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        setIsLoading(true);
         const response = await api.get("/api/fuel_quote", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         setFuelHistoryData(response.data);
+        setIsLoading(false);
       } catch (error) {
         console.error(error);
         setFuelHistoryDataExists(false);
+        setIsLoading(false);
       }
     };
     fetchHistory();
@@ -54,7 +59,9 @@ const FuelHistory = () => {
 
   return (
     <>
-      {!fuelHistoryDataExists ? (
+      {isLoading ? (
+        <div>{LoadingSpinner()}</div>
+      ) : !fuelHistoryDataExists ? (
         <div>
           <p>
             <h2 className="fancy-div-history">
