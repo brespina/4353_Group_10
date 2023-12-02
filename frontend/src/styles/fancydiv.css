@@ -39,5 +39,10 @@
 }
 
 .details {
-  padding-top: 1rem;
+  padding-top: 0.5rem;
+}
+
+.date {
+  margin-top: 0rem;
+  margin-bottom: 1rem;
 }
