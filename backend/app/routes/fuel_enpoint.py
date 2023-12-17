@@ -1,25 +1,39 @@
 from datetime import datetime
+from time import sleep
+
 import pytz
 from fastapi import APIRouter, Depends, HTTPException
 from xata import XataClient
+
 from ..models import FuelData, UserDetails
-from ..utils import decode_token, format_datetime, get_db, oauth2_scheme, calculate_price, Cache
-from time import sleep
+from ..utils import (
+    Cache,
+    calculate_price,
+    decode_token,
+    format_datetime,
+    get_db,
+    oauth2_scheme,
+)
 
 app = APIRouter()
 
 cache = Cache()
 
+
 @app.post("/api/fuel_quote", description="Adds a fuel quote")
-async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
+async def add_fuel_quote(
+    data: FuelData,
+    token: str = Depends(oauth2_scheme),
+    db: XataClient = Depends(get_db),
+):
     user = decode_token(token)
 
-    response = db.sql().query (
+    response = db.sql().query(
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
     )
 
     # Will prob never execute
-    if len(response.get('records', [])) == 0:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     if response["records"][0]["require_details"] is True:
@@ -54,13 +68,13 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
     cst = pytz.timezone("America/Chicago")
     current_time_cst = datetime.now(cst)
     data.date_requested = current_time_cst.isoformat()
-    
+
     check_history = db.sql().query(
         'SELECT COUNT(*) FROM "FuelData" WHERE username = $1', [user]
     )
 
     history = True if check_history["records"][0]["count"] > 0 else False
-    
+
     data.suggested_price = calculate_price(
         details.state, history, data.gallons_requested
     )
@@ -84,7 +98,9 @@ async def add_fuel_quote(data: FuelData, token: str = Depends(oauth2_scheme), db
 
 
 @app.get("/api/fuel_quote", description="Returns a list of fuel quotes")
-async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)):
+async def get_fuel_quote(
+    token: str = Depends(oauth2_scheme), db: XataClient = Depends(get_db)
+):
     user = decode_token(token)
     details = db.sql().query(
         'SELECT require_details FROM "UserCredentials" WHERE id = $1', [user]
@@ -101,7 +117,7 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
         [user],
     )
 
-    if len(response.get('records', [])) == 0:
+    if len(response.get("records", [])) == 0:
         raise HTTPException(status_code=501, detail="No fuel quotes registered")
 
     data = []
@@ -125,8 +141,6 @@ async def get_fuel_quote(token: str = Depends(oauth2_scheme), db: XataClient = D
     return data
 
 
-
-
 @app.get("/api/get_price", description="Return the price of fuel")
 async def get_price(gallons: int, token: str = Depends(oauth2_scheme)):
     user = decode_token(token)
@@ -143,5 +157,3 @@ async def get_price(gallons: int, token: str = Depends(oauth2_scheme)):
     price = calculate_price(data["state"], data["history"], gallons)
 
     return {"ppg": price}
-
-    

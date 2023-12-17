@@ -26,9 +26,9 @@ def test_login_invalid_user():
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid username or password"}
 
+
 def test_valid_username_wrong_pass():
     register("testuser", "testpass")
     response = login("testuser", "wrongpass")
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid username or password"}
-

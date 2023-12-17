@@ -1,13 +1,13 @@
-import React, { FormEvent, useState } from "react";
+import { useFormik } from "formik";
+import React, { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
+import Company from "../components/Company";
+import ProfileForm from "../components/ProfileForm";
+import api from "../components/api";
+import { loginSchema } from "../components/validationSchema";
 import "../styles/auth.css";
 import "../styles/fancydiv.css";
-import ProfileForm from "../components/ProfileForm";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import Company from "../components/Company";
-import api from "../components/api";
-import { useFormik } from "formik";
-import { loginSchema } from "../components/validationSchema";
 
 const Login: React.FC = () => {
   const [shouldShowProfileForm, setShouldShowProfileForm] = useState(false);

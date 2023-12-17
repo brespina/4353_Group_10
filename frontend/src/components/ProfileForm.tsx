@@ -1,9 +1,9 @@
 // src/components/ProfileForm.tsx
+import { AxiosError, isAxiosError } from "axios";
+import { useFormik } from "formik";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AxiosError, isAxiosError } from "axios";
 import api from "../components/api";
-import { useFormik } from "formik";
 import { profileSchema } from "../components/validationSchema";
 
 const ProfileForm = () => {

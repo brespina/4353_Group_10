@@ -1,12 +1,12 @@
+import { useFormik } from "formik";
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import "../styles/auth.css";
-import "../styles/fancydiv.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import Company from "../components/Company";
 import api from "../components/api";
-import { useFormik } from "formik";
 import { registerSchema } from "../components/validationSchema";
+import "../styles/auth.css";
+import "../styles/fancydiv.css";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();

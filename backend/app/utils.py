@@ -23,17 +23,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
 global_db = None
 
-class Cache():
-    def __init__(self, exp_min = 30):
+
+class Cache:
+    def __init__(self, exp_min=30):
         self.cache = {}
         self.exp_min = exp_min
 
     def set(self, key, value):
         self.cache[key] = {
             "value": value,
-            "expire": datetime.now() + timedelta(minutes=self.exp_min)
+            "expire": datetime.now() + timedelta(minutes=self.exp_min),
         }
-    
+
     def get(self, key):
         if key in self.cache:
             if self.cache[key]["expire"] > datetime.now():
@@ -43,17 +44,20 @@ class Cache():
         return None
 
 
-
 # Use 1 instance to reduce overhead
 def initialize_db():
     global global_db
     if global_db is None:
-        global_db = XataClient(api_key=XATA_API_KEY, branch_name=XATA_BRANCH, db_url=DB_URL)
+        global_db = XataClient(
+            api_key=XATA_API_KEY, branch_name=XATA_BRANCH, db_url=DB_URL
+        )
     return global_db
+
 
 def get_db():
     db = initialize_db()
     yield db
+
 
 # Not implementing it yet
 def calculate_price(state, history, amount) -> float:  # type: ignore
@@ -63,9 +67,12 @@ def calculate_price(state, history, amount) -> float:  # type: ignore
     location_factor = 0.02 if state == "TX" else 0.04
     gallons_factor = 0.02 if amount > 1000 else 0.03
 
-    margin = curr_price * (location_factor - history_factor + gallons_factor + profit_factor)
+    margin = curr_price * (
+        location_factor - history_factor + gallons_factor + profit_factor
+    )
 
     return curr_price + margin
+
 
 def format_datetime(dt: str) -> str:
     dt_obj = datetime.fromisoformat(dt)

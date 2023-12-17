@@ -76,4 +76,3 @@ def test_get_quote_wo_fuel_history():
     response = get_fuelquote(token)
     assert response.status_code == 501
     assert response.json() == {"detail": "No fuel quotes registered"}
-

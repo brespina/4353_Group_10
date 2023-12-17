@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { AxiosError, isAxiosError } from "axios";
-import api from "../components/api";
 import { useFormik } from "formik";
+import { useEffect, useState } from "react";
+import api from "../components/api";
 import { profileSchema } from "../components/validationSchema";
 
 const Profile = () => {

@@ -1,11 +1,11 @@
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import FuelHistoryPage from "./pages/FuelHistoryPage";
+import FuelQuotePage from "./pages/FuelQuotePage";
 import Home from "./pages/Home";
-import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-import FuelQuotePage from "./pages/FuelQuotePage";
-import FuelHistoryPage from "./pages/FuelHistoryPage";
-import { Route, Routes, useLocation, Navigate } from "react-router-dom";
+import Register from "./pages/Register";
 
 function ProtectedRoute({ children, validPaths }: any) {
   const token = localStorage.getItem("token");
