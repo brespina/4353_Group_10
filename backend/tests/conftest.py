@@ -1,12 +1,11 @@
 import os
 
 import pytest
+from app.main import app
 from app.utils import get_db
 from dotenv import find_dotenv, load_dotenv
 from fastapi.testclient import TestClient
 from xata import XataClient
-
-from backend.app.main import app
 
 load_dotenv(find_dotenv())
 
