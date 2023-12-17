@@ -116,8 +116,7 @@ def test_add_user_details_invalid_full_name():
     response = add_details(token, details)
     assert response.status_code == 422
     assert (
-        response.json()["detail"][0]["msg"]
-        == "Value error, Please enter a valid name"
+        response.json()["detail"][0]["msg"] == "Value error, Please enter a valid name"
     )
 
 
@@ -134,8 +133,7 @@ def test_add_user_details_invalid_whitespace_full_name():
     response = add_details(token, details)
     assert response.status_code == 422
     assert (
-        response.json()["detail"][0]["msg"]
-        == "String should have at least 1 characters"
+        response.json()["detail"][0]["msg"] == "String should have at least 1 character"
     )
 
 
