@@ -3,7 +3,13 @@
 
 name: FastAPI
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - backend/**
+  pull_request:
+    paths:
+      - backend/**
 
 permissions:
   contents: read
