@@ -14,7 +14,7 @@ For the **backend**, install Python 3.11 and run in the terminal:
 
 1. `cd 4353_Group_10/backend`
 2. `pip install -r requirements.txt`
-3. `uvicorn main:app --reload`
+3. `uvicorn app.main:app --reload`
 
 ## API Documentation
 
